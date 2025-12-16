@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace SolutionBundler.Core.Implementations.MetadataReading;
 
 /// <summary>

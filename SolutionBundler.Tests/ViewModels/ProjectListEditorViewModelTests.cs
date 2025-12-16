@@ -3,6 +3,9 @@ using SolutionBundler.Core.Abstractions;
 using SolutionBundler.Core.Models;
 using SolutionBundler.Core.Storage;
 using SolutionBundler.WPF.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using Xunit;
 
 namespace SolutionBundler.Tests.ViewModels;

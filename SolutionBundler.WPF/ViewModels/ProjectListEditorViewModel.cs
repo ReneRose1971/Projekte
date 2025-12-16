@@ -11,6 +11,10 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using System.IO;
+using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace SolutionBundler.WPF.ViewModels;
 

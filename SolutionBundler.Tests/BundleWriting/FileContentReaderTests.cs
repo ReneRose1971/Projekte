@@ -1,5 +1,7 @@
 using SolutionBundler.Core.Abstractions;
 using SolutionBundler.Core.Implementations.BundleWriting;
+using System;
+using System.IO;
 using Xunit;
 
 namespace SolutionBundler.Tests.BundleWriting;

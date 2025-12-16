@@ -1,4 +1,5 @@
 using SolutionBundler.Core.Models;
+using System.IO;
 
 namespace SolutionBundler.Core.Implementations.MetadataReading;
 

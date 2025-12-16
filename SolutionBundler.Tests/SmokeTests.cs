@@ -1,5 +1,6 @@
 using SolutionBundler.Core.Implementations;
 using SolutionBundler.Core.Models;
+using System.IO;
 using Xunit;
 
 namespace SolutionBundler.Tests;

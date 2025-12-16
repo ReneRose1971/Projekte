@@ -3,6 +3,8 @@ using SolutionBundler.Core;
 using SolutionBundler.Core.Abstractions;
 using SolutionBundler.Core.Models;
 using SolutionBundler.Core.Storage;
+using System;
+using System.Collections.Generic;
 using Xunit;
 
 namespace SolutionBundler.Tests;

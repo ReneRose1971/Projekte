@@ -1,4 +1,5 @@
 using SolutionBundler.Core.Models;
+using System.Collections.Generic;
 
 namespace SolutionBundler.Core.Abstractions;
 

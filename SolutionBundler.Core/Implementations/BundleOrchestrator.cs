@@ -1,5 +1,7 @@
 using SolutionBundler.Core.Abstractions;
 using SolutionBundler.Core.Models;
+using System.IO;
+using System.Linq;
 
 namespace SolutionBundler.Core.Implementations;
 

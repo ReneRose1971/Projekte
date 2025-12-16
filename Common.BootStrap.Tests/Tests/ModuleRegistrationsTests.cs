@@ -1,7 +1,6 @@
-using System;
+using Common.Bootstrap;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
-using Common.Bootstrap;
 
 namespace Common.BootStrap.Tests
 {

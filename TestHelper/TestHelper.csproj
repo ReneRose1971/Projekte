@@ -23,5 +23,8 @@
     
     <Message Text="$(AssemblyName).dll kopiert nach: $(LibCacheDir)" Importance="high" />
   </Target>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+  </ItemGroup>
 
 </Project>

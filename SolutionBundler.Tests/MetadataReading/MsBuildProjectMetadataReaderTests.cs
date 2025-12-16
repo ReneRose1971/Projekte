@@ -1,5 +1,9 @@
 using SolutionBundler.Core.Implementations;
 using SolutionBundler.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Xunit;
 
 namespace SolutionBundler.Tests;

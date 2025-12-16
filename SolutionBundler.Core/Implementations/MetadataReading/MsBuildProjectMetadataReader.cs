@@ -1,6 +1,9 @@
 using SolutionBundler.Core.Abstractions;
 using SolutionBundler.Core.Implementations.MetadataReading;
 using SolutionBundler.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SolutionBundler.Core.Implementations;
 

@@ -17,5 +17,6 @@
     <Project Path="CustomWPFControls/CustomWPFControls.csproj" />
     <Project Path="DataToolKit.Tests/DataToolKit.Tests.csproj" />
     <Project Path="DataToolKit/DataToolKit.csproj" />
+    <Project Path="TestHelper/TestHelper.csproj" />
   </Folder>
 </Solution>

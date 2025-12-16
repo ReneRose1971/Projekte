@@ -23,6 +23,7 @@
   <ItemGroup>
     <ProjectReference Include="..\TypeTutor.Logic\TypeTutor.Logic.csproj" />
     <ProjectReference Include="..\TTVisualKeyboard\TTVisualKeyboard.csproj" />
+    <ProjectReference Include="..\CustomWPFControls\CustomWPFControls.csproj" />
   </ItemGroup>
 
 </Project>

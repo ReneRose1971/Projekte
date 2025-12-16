@@ -1,5 +1,6 @@
 using CustomWPFControls.Factories;
 using CustomWPFControls.ViewModels;
+using System;
 
 namespace SolutionBundler.WPF.ViewModels;
 

@@ -1,4 +1,6 @@
 using SolutionBundler.Core.Models;
+using System;
+using System.IO;
 
 namespace SolutionBundler.Core.Implementations.BundleWriting;
 

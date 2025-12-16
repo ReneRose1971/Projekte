@@ -1,4 +1,5 @@
 using SolutionBundler.Core.Abstractions;
+using System.IO;
 
 namespace SolutionBundler.Core.Implementations.BundleWriting;
 

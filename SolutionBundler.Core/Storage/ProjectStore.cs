@@ -1,5 +1,8 @@
 using DataToolKit.Abstractions.DataStores;
 using SolutionBundler.Core.Models;
+using System;
+using System.IO;
+using System.Linq;
 
 namespace SolutionBundler.Core.Storage;
 

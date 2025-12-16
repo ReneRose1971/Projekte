@@ -5,6 +5,11 @@ using SolutionBundler.Core.Abstractions;
 using SolutionBundler.Core.Models;
 using SolutionBundler.Core.Storage;
 using SolutionBundler.WPF.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace SolutionBundler.Tests;

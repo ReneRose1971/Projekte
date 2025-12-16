@@ -1,4 +1,5 @@
 using DataToolKit.Abstractions.Repositories;
+using System;
 
 namespace SolutionBundler.Core.Models;
 

@@ -1,6 +1,8 @@
 using DataToolKit.Tests.Fakes.Providers;
 using SolutionBundler.Core.Models;
 using SolutionBundler.Core.Storage;
+using System;
+using System.IO;
 using Xunit;
 
 namespace SolutionBundler.Tests.Storage;

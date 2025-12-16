@@ -1,5 +1,8 @@
 using SolutionBundler.Core.Implementations.MetadataReading;
 using SolutionBundler.Core.Models;
+using System;
+using System.IO;
+using System.Linq;
 using Xunit;
 
 namespace SolutionBundler.Tests.MetadataReading;
