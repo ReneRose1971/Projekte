@@ -1,0 +1,52 @@
+<Window x:Class="SolutionBundler.WPF.MainWindowWithSplitView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="clr-namespace:SolutionBundler.WPF.Controls"
+        Title="Solution Bundler - Split View" 
+        Height="600" 
+        Width="1200"
+        WindowStartupLocation="CenterScreen">
+    
+    <Grid Margin="10">
+        <Grid.ColumnDefinitions>
+            <!-- Links: Project Manager (33%) -->
+            <ColumnDefinition Width="1*"/>
+            <ColumnDefinition Width="5"/>
+            <!-- Rechts: Log Output (66%) -->
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Left Panel: Project Manager -->
+        <controls:ProjectListEditorView 
+            Grid.Column="0"
+            Title="Projekte"
+            EmptyMessage="Keine Projekte hinzugefuegt. Klicken Sie auf Hinzufuegen."
+            ItemsSource="{Binding Projects}"
+            SelectedItem="{Binding SelectedProject, Mode=TwoWay}"
+            AddCommand="{Binding AddProjectCommand}"
+            DeleteCommand="{Binding RemoveProjectCommand}"
+            ClearCommand="{Binding ClearProjectsCommand}"
+            IsAddVisible="True"
+            IsDeleteVisible="True"
+            IsClearVisible="True"
+            IsEditVisible="False"/>
+
+        <!-- GridSplitter -->
+        <GridSplitter Grid.Column="1"
+                      HorizontalAlignment="Stretch"
+                      Background="#DDDDDD"
+                      ShowsPreview="True"/>
+
+        <!-- Right Panel: Log Output -->
+        <controls:LogOutputView 
+            Grid.Column="2"
+            Title="Ausgabe"
+            LogText="{Binding LogText, Mode=TwoWay}"
+            StatusText="{Binding StatusMessage}"
+            Progress="{Binding ProgressPercentage}"
+            ScanCommand="{Binding ScanAllProjectsCommand}"
+            IsProgressVisible="True"
+            IsScanVisible="True"
+            AutoScrollToEnd="True"/>
+    </Grid>
+</Window>

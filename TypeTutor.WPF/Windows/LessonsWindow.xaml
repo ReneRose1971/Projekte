@@ -1,0 +1,24 @@
+﻿<!-- src/TypeTutor.WPF/LessonsWindow.xaml -->
+<Window x:Class="TypeTutor.WPF.LessonsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TypeTutor.WPF"
+        Title="Lessons laden" Width="720" Height="520"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="None"
+        ResizeMode="CanResize">
+    <DockPanel>
+        <Border Background="{StaticResource WindowTitleBarBrush}" DockPanel.Dock="Top" Height="36" MouseLeftButtonDown="TitleBar_MouseDown">
+            <Grid>
+                <TextBlock Text="Lessons" Foreground="White" VerticalAlignment="Center" Margin="12,0,0,0" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Button Content="_" Width="28" Click="OnMinimize" />
+                    <Button Content="[]" Width="28" Click="OnToggleMaximize" />
+                    <Button Content="X" Width="28" Click="OnClose" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <local:LessonListView DataContext="{Binding ListVM}" />
+    </DockPanel>
+</Window>

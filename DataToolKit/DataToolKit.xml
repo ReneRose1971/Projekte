@@ -1,0 +1,2047 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DataToolKit</name>
+    </assembly>
+    <members>
+        <member name="T:DataToolKit.Abstractions.DataStores.CollectionHelpers">
+            <summary>
+            Hilfsmethoden für Collections mit Unterstützung eines <see cref="T:System.Collections.Generic.IEqualityComparer`1"/>.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.CollectionHelpers.ContainsWithComparer``1(System.Collections.Generic.IEnumerable{``0},``0,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Prüft, ob die Sequenz ein Element enthält, verglichen mit dem angegebenen Comparer.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.CollectionHelpers.IndexOfWithComparer``1(System.Collections.Generic.IList{``0},``0,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Liefert den Index des ersten Elements, das dem übergebenen Element entspricht, oder -1.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.DataStores.IDataStore`1">
+            <summary>
+            Minimaler, UI-frameworkneutraler In-Memory-Datenspeicher für Elemente vom Typ <typeparamref name="T"/>.
+            Stellt eine schreibgeschützte Sicht auf die Elemente bereit und bietet grundlegende Änderungsoperationen.
+            Persistenz ist ausdrücklich nicht Bestandteil dieser Schnittstelle.
+            </summary>
+            <typeparam name="T">Der Typ der zu verwaltenden Elemente.</typeparam>
+        </member>
+        <member name="P:DataToolKit.Abstractions.DataStores.IDataStore`1.Items">
+            <summary>
+            Schreibgeschützte Sicht auf alle aktuell verwalteten Elemente.
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.DataStores.IDataStore`1.Count">
+            <summary>
+            Anzahl der aktuell gespeicherten Elemente.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStore`1.Add(`0)">
+            <summary>
+            Fügt ein Element hinzu, sofern es noch nicht vorhanden ist.
+            </summary>
+            <param name="item">Das hinzuzufügende Element.</param>
+            <returns><c>true</c>, wenn das Element hinzugefügt wurde; andernfalls <c>false</c>.</returns>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStore`1.AddRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Fügt mehrere Elemente hinzu; bereits vorhandene werden übersprungen.
+            </summary>
+            <param name="items">Die hinzuzufügenden Elemente.</param>
+            <returns>Anzahl der tatsächlich hinzugefügten Elemente.</returns>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStore`1.Remove(`0)">
+            <summary>
+            Entfernt ein Element, sofern vorhanden.
+            </summary>
+            <param name="item">Das zu entfernende Element.</param>
+            <returns><c>true</c>, wenn ein Element entfernt wurde; andernfalls <c>false</c>.</returns>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStore`1.RemoveRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Entfernt mehrere Elemente, sofern vorhanden.
+            </summary>
+            <param name="items">Die zu entfernenden Elemente.</param>
+            <returns>Anzahl der entfernten Elemente.</returns>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStore`1.RemoveWhere(System.Predicate{`0})">
+            <summary>
+            Entfernt alle Elemente, die die angegebene Bedingung erfüllen.
+            </summary>
+            <param name="predicate">Bedingung zur Auswahl der zu entfernenden Elemente.</param>
+            <returns>Anzahl der entfernten Elemente.</returns>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStore`1.Clear">
+            <summary>
+            Entfernt alle Elemente.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.DataStores.IDataStoreFactory">
+            <summary>
+            Factory zur Erzeugung von DataStore-Instanzen.
+            Reine Fabrik-Verantwortung - keine Logik für AutoLoad oder Singleton-Management.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreFactory.CreateInMemoryStore``1(System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Erstellt einen InMemoryDataStore für den Typ <typeparamref name="T"/>.
+            </summary>
+            <param name="comparer">Optionaler EqualityComparer für Duplikats-Erkennung.</param>
+            <returns>Neue InMemoryDataStore-Instanz.</returns>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreFactory.CreatePersistentStore``1(DataToolKit.Abstractions.Repositories.IRepositoryBase{``0},System.Boolean)">
+            <summary>
+            Erstellt einen PersistentDataStore für den Typ <typeparamref name="T"/>.
+            </summary>
+            <param name="repository">Repository für Persistierung.</param>
+            <param name="trackPropertyChanges">PropertyChanged-Tracking aktivieren.</param>
+            <returns>Neue PersistentDataStore-Instanz (ohne geladene Daten).</returns>
+            <remarks>
+            <para>
+            <b>Repository-Typen:</b>
+            </para>
+            <list type="bullet">
+            <item>JSON-Repository (IRepositoryBase) ? Funktioniert mit jedem POCO</item>
+            <item>LiteDB-Repository (IRepository) ? Benötigt IEntity (EntityBase)</item>
+            </list>
+            </remarks>
+        </member>
+        <member name="T:DataToolKit.Abstractions.DataStores.IDataStoreProvider">
+            <summary>
+            Provider zur Verwaltung von DataStore-Instanzen mit Singleton-Pattern.
+            Verwaltet einen Cache von DataStore-Instanzen pro Typ.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreProvider.GetDataStore``1">
+            <summary>
+            Gibt einen bereits registrierten DataStore zurück, unabhängig davon ob InMemory oder Persistent.
+            </summary>
+            <typeparam name="T">Der Entitätstyp des DataStores.</typeparam>
+            <returns>Der bereits existierende DataStore.</returns>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn kein DataStore für den Typ <typeparamref name="T"/> registriert wurde.
+            </exception>
+            <remarks>
+            Diese Methode erstellt <b>keinen</b> neuen DataStore, sondern gibt nur einen bereits
+            existierenden zurück. Nützlich für Komponenten, die einen DataStore verwenden möchten,
+            ohne zu wissen ob er als InMemory oder Persistent erstellt wurde.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreProvider.GetDataStoreAsync``1">
+            <summary>
+            Gibt einen bereits registrierten DataStore asynchron zurück, unabhängig davon ob InMemory oder Persistent.
+            </summary>
+            <typeparam name="T">Der Entitätstyp des DataStores.</typeparam>
+            <returns>Der bereits existierende DataStore.</returns>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn kein DataStore für den Typ <typeparamref name="T"/> registriert wurde.
+            </exception>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreProvider.GetInMemory``1(System.Boolean,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Gibt einen InMemoryDataStore zurück (Singleton oder neue Instanz).
+            </summary>
+            <typeparam name="T">Entitätstyp.</typeparam>
+            <param name="isSingleton">
+            Wenn <c>true</c>, wird eine Singleton-Instanz zurückgegeben (eine pro Typ).
+            Wenn <c>false</c>, wird eine neue Instanz erstellt.
+            </param>
+            <param name="comparer">Optionaler EqualityComparer.</param>
+            <returns>InMemoryDataStore-Instanz.</returns>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreProvider.GetInMemoryAsync``1(System.Boolean,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Gibt einen InMemoryDataStore asynchron zurück (thread-safe).
+            </summary>
+            <typeparam name="T">Entitätstyp.</typeparam>
+            <param name="isSingleton">Singleton oder neue Instanz.</param>
+            <param name="comparer">Optionaler EqualityComparer.</param>
+            <returns>InMemoryDataStore-Instanz.</returns>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreProvider.GetPersistent``1(DataToolKit.Storage.Repositories.IRepositoryFactory,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Gibt einen PersistentDataStore zurück (Singleton oder neue Instanz).
+            </summary>
+            <typeparam name="T">Entitätstyp (class constraint - funktioniert mit POCOs und EntityBase).</typeparam>
+            <param name="repositoryFactory">Factory zum Auflösen des Repositories.</param>
+            <param name="isSingleton">Singleton oder neue Instanz.</param>
+            <param name="trackPropertyChanges">PropertyChanged-Tracking aktivieren.</param>
+            <param name="autoLoad">
+            Wenn <c>true</c>, werden Daten automatisch aus dem Repository geladen.
+            </param>
+            <returns>PersistentDataStore-Instanz.</returns>
+            <remarks>
+            <para>
+            <b>Repository-Auswahl:</b> Automatisch basierend auf Typ:
+            </para>
+            <list type="bullet">
+            <item><see cref="T:DataToolKit.Abstractions.Repositories.EntityBase"/>-Typen ? LiteDB-Repository (granulare Operationen)</item>
+            <item>POCOs (nur class) ? JSON-Repository (atomares WriteAll)</item>
+            </list>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreProvider.GetPersistentAsync``1(DataToolKit.Storage.Repositories.IRepositoryFactory,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Gibt einen PersistentDataStore asynchron zurück (mit optionalem AutoLoad).
+            </summary>
+            <typeparam name="T">Entitätstyp (class constraint - funktioniert mit POCOs und EntityBase).</typeparam>
+            <param name="repositoryFactory">Factory zum Auflösen des Repositories.</param>
+            <param name="isSingleton">Singleton oder neue Instanz.</param>
+            <param name="trackPropertyChanges">PropertyChanged-Tracking aktivieren.</param>
+            <param name="autoLoad">
+            Wenn <c>true</c>, werden Daten automatisch asynchron geladen.
+            </param>
+            <returns>PersistentDataStore-Instanz.</returns>
+            <remarks>
+            Asynchrone Variante von <see cref="M:DataToolKit.Abstractions.DataStores.IDataStoreProvider.GetPersistent``1(DataToolKit.Storage.Repositories.IRepositoryFactory,System.Boolean,System.Boolean,System.Boolean)"/>. Siehe dort für Details zur Repository-Auswahl.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreProvider.RemoveSingleton``1">
+            <summary>
+            Entfernt eine Singleton-Instanz aus dem Cache.
+            Ruft Dispose() auf, falls die Instanz IDisposable implementiert.
+            </summary>
+            <typeparam name="T">Entitätstyp.</typeparam>
+            <returns><c>true</c>, wenn die Instanz entfernt wurde; andernfalls <c>false</c>.</returns>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IDataStoreProvider.ClearAll">
+            <summary>
+            Entfernt alle Singleton-Instanzen aus dem Cache.
+            Ruft Dispose() auf allen IDisposable-Instanzen auf.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.DataStores.IPersistenceStrategy`1">
+            <summary>
+            Schnittstelle für Persistierungs-Strategien.
+            Kapselt die Unterschiede zwischen JSON (WriteAll) und LiteDB (granular).
+            </summary>
+            <typeparam name="T">Entitätstyp (class constraint - funktioniert mit POCOs und EntityBase).</typeparam>
+            <remarks>
+            <para>
+            <b>JSON-Strategie:</b> Alle Methoden führen zu einem vollständigen <c>Write()</c> der Collection.
+            Dies ist optimal für kleine Datenmengen (&lt; 100 Einträge), da JSON-Repositories atomar arbeiten.
+            Funktioniert mit jedem POCO.
+            </para>
+            <para>
+            <b>LiteDB-Strategie:</b> Nutzt granulare Operationen (<c>Update</c>, <c>Delete</c>) wo möglich,
+            um die Datenbank-Performance zu optimieren. Benötigt <see cref="T:DataToolKit.Abstractions.Repositories.IEntity"/> (wird von EntityBase implementiert).
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IPersistenceStrategy`1.OnAdded(`0)">
+            <summary>
+            Wird aufgerufen, wenn ein Element zur Collection hinzugefügt wurde.
+            </summary>
+            <param name="entity">Das hinzugefügte Element.</param>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IPersistenceStrategy`1.OnRemoved(`0)">
+            <summary>
+            Wird aufgerufen, wenn ein Element aus der Collection entfernt wurde.
+            </summary>
+            <param name="entity">Das entfernte Element.</param>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IPersistenceStrategy`1.OnEntityChanged(`0)">
+            <summary>
+            Wird aufgerufen, wenn eine Property einer Entität geändert wurde (via INotifyPropertyChanged).
+            </summary>
+            <param name="entity">Die geänderte Entität.</param>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.IPersistenceStrategy`1.OnCleared">
+            <summary>
+            Wird aufgerufen, wenn die Collection komplett geleert wurde.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.DataStores.SyncContextExtensions">
+            <summary>
+            Erweiterungen für <see cref="T:System.Threading.SynchronizationContext"/>, um synchrones Marshaling
+            (mit Ergebnis) bequem und testbar auszulagern.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.SyncContextExtensions.Invoke(System.Threading.SynchronizationContext,System.Action)">
+            <summary>
+            Führt <paramref name="action"/> auf dem angegebenen <paramref name="ctx"/> aus,
+            sofern nötig mittels <see cref="M:System.Threading.SynchronizationContext.Send(System.Threading.SendOrPostCallback,System.Object)"/>.
+            Ist <paramref name="ctx"/> <c>null</c> oder entspricht dem aktuellen Context,
+            wird direkt ausgeführt.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DataStores.SyncContextExtensions.Invoke``1(System.Threading.SynchronizationContext,System.Func{``0})">
+            <summary>
+            Führt <paramref name="func"/> auf dem angegebenen <paramref name="ctx"/> aus
+            und gibt das Ergebnis zurück. Siehe <see cref="M:DataToolKit.Abstractions.DataStores.SyncContextExtensions.Invoke(System.Threading.SynchronizationContext,System.Action)"/>.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.DI.DataToolKitServiceModule">
+            <summary>
+            ServiceModule für die DataToolKit-Infrastruktur.
+            Registriert IRepositoryFactory, IDataStoreFactory, IDataStoreProvider und andere zentrale Services.
+            
+            Repositories für spezifische Entitätstypen werden über die Extension-Methoden
+            <see cref="M:DataToolKit.Abstractions.DI.RepositoryRegistrationExtensions.AddJsonRepository``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.String,System.String)"/> und
+            <see cref="M:DataToolKit.Abstractions.DI.RepositoryRegistrationExtensions.AddLiteDbRepository``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.String,System.String)"/> registriert.
+            </summary>
+            <remarks>
+            <para>
+            <b>Abhängigkeit:</b> Dieses Modul setzt voraus, dass <see cref="T:Common.Bootstrap.CommonBootstrapServiceModule"/>
+            bereits registriert wurde, um <c>IEqualityComparer&lt;T&gt;</c> (via <c>FallbackEqualsComparer&lt;T&gt;</c>)
+            verfügbar zu machen.
+            </para>
+            </remarks>
+            <example>
+            <code>
+            // 1) Bootstrap-Prozess in Program.cs
+            var builder = Host.CreateApplicationBuilder(args);
+            
+            // Automatische Modul-Registrierung
+            builder.Services.AddModulesFromAssemblies(
+                typeof(Program).Assembly,
+                typeof(DataToolKitServiceModule).Assembly);
+            
+            // 2) In einem App-spezifischen ServiceModule: Repository registrieren
+            public class MyAppDataModule : IServiceModule
+            {
+                public void Register(IServiceCollection services)
+                {
+                    // JSON-Repository für einfache DTOs (alles in einem Aufruf)
+                    services.AddJsonRepository&lt;Customer&gt;("MyApp", "customers", "Data");
+                    
+                    // LiteDB-Repository für Entitäten mit EntityBase (alles in einem Aufruf)
+                    services.AddLiteDbRepository&lt;Order&gt;("MyApp", "orders", "Databases");
+                }
+            }
+            
+            // 3) Verwendung in Services via DI
+            public class CustomerService
+            {
+                private readonly IRepositoryBase&lt;Customer&gt; _customerRepo;
+                private readonly IRepository&lt;Order&gt; _orderRepo;
+                
+                public CustomerService(
+                    IRepositoryBase&lt;Customer&gt; customerRepo,
+                    IRepository&lt;Order&gt; orderRepo)
+                {
+                    _customerRepo = customerRepo;
+                    _orderRepo = orderRepo;
+                }
+            }
+            </code>
+            </example>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DI.DataToolKitServiceModule.Register(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            Registriert alle benötigten DataToolKit-Services:
+            - <see cref="T:DataToolKit.Storage.Repositories.IRepositoryFactory"/> als Singleton
+            - <see cref="T:DataToolKit.Abstractions.DataStores.IDataStoreFactory"/> als Singleton
+            - <see cref="T:DataToolKit.Abstractions.DataStores.IDataStoreProvider"/> als Singleton
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.DI.RepositoryRegistrationExtensions">
+            <summary>
+            Extensions zur vereinfachten Registrierung von Repository-Implementierungen als Singletons.
+            Jede Extension registriert automatisch die zugehörigen <see cref="T:DataToolKit.Abstractions.Repositories.IStorageOptions`1"/> und das Repository.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DI.RepositoryRegistrationExtensions.AddJsonRepository``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.String,System.String)">
+            <summary>
+            Registriert ein JSON-Repository für <typeparamref name="T"/> als Singleton.
+            Erstellt und registriert automatisch die <see cref="T:DataToolKit.Storage.Repositories.JsonStorageOptions`1"/>.
+            </summary>
+            <typeparam name="T">Der Entitätstyp.</typeparam>
+            <param name="services">Die Service-Collection.</param>
+            <param name="appSubFolder">
+            Anwendungs-Unterordner in "Eigene Dokumente" (z.B. "MyApp").
+            Dieser Ordner wird unterhalb von <c>Environment.SpecialFolder.MyDocuments</c> erstellt.
+            </param>
+            <param name="fileNameBase">
+            Basisname der JSON-Datei ohne Erweiterung (z.B. "customers" ? "customers.json").
+            </param>
+            <param name="subFolder">
+            Optionaler zusätzlicher Unterordner innerhalb von <paramref name="appSubFolder"/> (z.B. "Data").
+            Kann null sein für keine weitere Verschachtelung.
+            </param>
+            <returns>Die Service-Collection für Fluent-API.</returns>
+            <remarks>
+            <para>
+            <b>Automatische Registrierung:</b>
+            </para>
+            <list type="bullet">
+            <item><see cref="T:DataToolKit.Abstractions.Repositories.IStorageOptions`1"/> ? <see cref="T:DataToolKit.Storage.Repositories.JsonStorageOptions`1"/> (Singleton)</item>
+            <item><see cref="T:DataToolKit.Abstractions.Repositories.IRepositoryBase`1"/> ? <see cref="T:DataToolKit.Storage.Repositories.JsonRepository`1"/> (Singleton)</item>
+            </list>
+            <para>
+            <b>Beispiel-Pfad:</b> <c>C:\Users\Name\Documents\MyApp\Data\customers.json</c>
+            </para>
+            </remarks>
+            <example>
+            <code>
+            // Vereinfachte Registrierung (alles in einem Aufruf)
+            services.AddJsonRepository&lt;Customer&gt;("MyApp", "customers", "Data");
+            
+            // Verwendung via DI
+            public class CustomerService
+            {
+                public CustomerService(IRepositoryBase&lt;Customer&gt; repository) { }
+            }
+            </code>
+            </example>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DI.RepositoryRegistrationExtensions.AddJsonRepositoryInternal``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.String,System.String,System.String)">
+            <summary>
+            Interne Überladung für Tests: Erlaubt die Angabe eines benutzerdefinierten Root-Ordners.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DI.RepositoryRegistrationExtensions.AddLiteDbRepository``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.String,System.String)">
+            <summary>
+            Registriert ein LiteDB-Repository für <typeparamref name="T"/> als Singleton.
+            Erstellt und registriert automatisch die <see cref="T:DataToolKit.Storage.Repositories.LiteDbStorageOptions`1"/>.
+            </summary>
+            <typeparam name="T">Der Entitätstyp (muss von <see cref="T:DataToolKit.Abstractions.Repositories.EntityBase"/> erben).</typeparam>
+            <param name="services">Die Service-Collection.</param>
+            <param name="appSubFolder">
+            Anwendungs-Unterordner in "Eigene Dokumente" (z.B. "MyApp").
+            Dieser Ordner wird unterhalb von <c>Environment.SpecialFolder.MyDocuments</c> erstellt.
+            </param>
+            <param name="fileNameBase">
+            Basisname der LiteDB-Datenbankdatei ohne Erweiterung (z.B. "orders" ? "orders.db").
+            </param>
+            <param name="subFolder">
+            Optionaler zusätzlicher Unterordner innerhalb von <paramref name="appSubFolder"/> (z.B. "Databases").
+            Kann null sein für keine weitere Verschachtelung.
+            </param>
+            <returns>Die Service-Collection für Fluent-API.</returns>
+            <remarks>
+            <para>
+            <b>Automatische Registrierung:</b>
+            </para>
+            <list type="bullet">
+            <item><see cref="T:DataToolKit.Abstractions.Repositories.IStorageOptions`1"/> ? <see cref="T:DataToolKit.Storage.Repositories.LiteDbStorageOptions`1"/> (Singleton)</item>
+            <item><see cref="T:DataToolKit.Abstractions.Repositories.IRepositoryBase`1"/> ? <see cref="T:DataToolKit.Storage.Repositories.LiteDbRepository`1"/> (Singleton)</item>
+            <item><see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/> ? Gleiche Instanz wie IRepositoryBase (für Update/Delete)</item>
+            </list>
+            <para>
+            <b>Benötigt:</b> <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> muss bereits im DI-Container registriert sein
+            (z.B. via <c>CommonBootstrapServiceModule</c> ? <c>FallbackEqualsComparer&lt;T&gt;</c>).
+            </para>
+            <para>
+            <b>Beispiel-Pfad:</b> <c>C:\Users\Name\Documents\MyApp\Databases\orders.db</c>
+            </para>
+            </remarks>
+            <example>
+            <code>
+            // Vereinfachte Registrierung (alles in einem Aufruf)
+            services.AddLiteDbRepository&lt;Order&gt;("MyApp", "orders", "Databases");
+            
+            // Verwendung via DI
+            public class OrderService
+            {
+                public OrderService(IRepository&lt;Order&gt; repository) { }
+            }
+            </code>
+            </example>
+        </member>
+        <member name="M:DataToolKit.Abstractions.DI.RepositoryRegistrationExtensions.AddLiteDbRepositoryInternal``1(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.String,System.String,System.String,System.String)">
+            <summary>
+            Interne Überladung für Tests: Erlaubt die Angabe eines benutzerdefinierten Root-Ordners.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.AbstractRepository`1">
+            <summary>
+            Abstrakte Zwischenstufe für Repositories mit Einzeloperationen (Update/Delete).
+            Erbt von <see cref="T:DataToolKit.Abstractions.Repositories.AbstractRepositoryBase`1"/> und implementiert <see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/>.
+            Enthält nur die abstrakten Sync-Stubs.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.AbstractRepository`1.#ctor(DataToolKit.Abstractions.Repositories.IStorageOptions{`0})">
+            <summary>
+            Konstruktor, der die <see cref="T:DataToolKit.Abstractions.Repositories.IStorageOptions`1"/> an die Basisklasse durchreicht.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.AbstractRepository`1.Update(`0)">
+            <summary>Aktualisiert eine bestehende Entität in der Datenquelle.</summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.AbstractRepository`1.Delete(`0)">
+            <summary>Entfernt eine bestehende Entität aus der Datenquelle.</summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.AbstractRepositoryBase`1">
+            <summary>
+            Abstrakte Basisklasse für Repositories.
+            Bezieht die Storage-Optionen über <see cref="T:DataToolKit.Abstractions.Repositories.IStorageOptions`1"/> aus dem DI-Container.
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.AbstractRepositoryBase`1.Options">
+            <summary>Storage-Optionen für den Typ T.</summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.AbstractRepositoryBase`1.FilePath">
+            <summary>Bequemer Zugriff auf den vollständigen Dateipfad.</summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.AbstractRepositoryBase`1.#ctor(DataToolKit.Abstractions.Repositories.IStorageOptions{`0})">
+            <summary>
+            Erstellt die Basisklasse und injiziert die typspezifischen Storage-Optionen.
+            </summary>
+            <param name="options">Die für T registrierten Storage-Optionen (aus DI).</param>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1">
+            <summary>
+            Abstrakte Basisklasse für eine einheitliche, dateibasierte Speicherumgebung.
+            Implementiert <see cref="T:DataToolKit.Abstractions.Repositories.IStorageOptions`1"/> für typsichere Registrierung im DI-Container.
+            
+            Festlegungen:
+            - Standard: Alle Daten liegen unterhalb des Benutzerordners "Eigene Dokumente" (MyDocuments).
+            - Optional: Für Tests kann ein eigener Root-Ordner angegeben werden.
+            - Jede Anwendung nutzt einen eigenen Unterordner (<see cref="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.AppSubFolder"/>).
+            - Optional kann ein weiterer, fachlicher Unterordner definiert werden (<see cref="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.SubFolder"/>).
+            - Der eigentliche Dateiname wird als Basisname (ohne Erweiterung) geführt; die Erweiterung
+              legt die abgeleitete Klasse fest (z. B. ".json" oder ".db").
+            
+            Ziel:
+            - vorhersehbare, robuste Pfadstruktur
+            - einfache Verwendung in Konsumentencode (z. B. direkt <see cref="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.FullPath"/> verwenden)
+            - klare Trennung von Pfadregeln und konkreter Speichertechnologie
+            - testbar durch optionalen Root-Ordner
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.AppSubFolder">
+            <inheritdoc />
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.SubFolder">
+            <inheritdoc />
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.FileNameBase">
+            <inheritdoc />
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.FileExtension">
+            <summary>
+            Von der abgeleiteten Klasse festgelegte Dateiendung (inklusive Punkt).
+            Beispiele: ".json", ".db".
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.RootFolder">
+            <inheritdoc />
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.EffectiveRoot">
+            <inheritdoc />
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.FullPath">
+            <inheritdoc />
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            Erstellt neue Speicher-Optionen mit konfigurierbarem Root, normiertem Dateinamen
+            und unmittelbar angelegtem Zielverzeichnis.
+            </summary>
+            <param name="appSubFolder">Pflichtfeld: Anwendungs-Unterordner unterhalb von rootFolder.</param>
+            <param name="fileNameBase">Pflichtfeld: Basisname der Datei (ohne Erweiterung).</param>
+            <param name="subFolder">Optional: weiterer Unterordner innerhalb von <paramref name="appSubFolder"/>.</param>
+            <param name="rootFolder">
+            Optional: Root-Verzeichnis. 
+            Wenn null, wird "Eigene Dokumente" (MyDocuments) verwendet.
+            Für Tests kann hier z.B. Path.GetTempPath() oder eine Sandbox übergeben werden.
+            </param>
+            <exception cref="T:System.ArgumentException">Bei leerem <paramref name="appSubFolder"/> oder <paramref name="fileNameBase"/>.</exception>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1.ToString">
+            <summary>
+            Liefert eine kompakte, hilfreiche Diagnoseinformation für Logging/Debugging.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.EntityBase">
+            <summary>
+            Abstrakte Basisklasse f?r Entit?ten, die <see cref="T:DataToolKit.Abstractions.Repositories.IEntity"/> implementieren.
+            Fody.PropertyChanged (OptIn) wird verwendet; die Klasse ist daher mit
+            <see cref="T:PropertyChanged.AddINotifyPropertyChangedInterfaceAttribute"/> ausgezeichnet und erh?lt
+            automatisch die Implementierung von <see cref="T:System.ComponentModel.INotifyPropertyChanged"/>.
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.EntityBase.Id">
+            <summary>
+            Eindeutige Identit?t der Entit?t (Integer).
+            Die ID wird von LiteDB automatisch beim ersten Einf?gen in eine <c>ILiteCollection</c> gesetzt.
+            Eine neu erzeugte Entit?t muss vor dem Einf?gen den Wert <c>0</c> haben.
+            
+            Hinweis: ?nderungen dieser <c>Id</c>-Eigenschaft sollten **keine** <c>PropertyChanged</c>-Benachrichtigung
+            ausl?sen. Die Fody-Annotation [DoNotNotify] verhindert das Generieren von Benachrichtigungen f?r dieses Feld.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.EntityBase.ToString">
+            <summary>
+            Liefert eine string-Repr?sentation der Entit?t (Typname + Id).
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.EntityBase.Equals(System.Object)">
+            <summary>
+            Vergleicht zwei Entit?ten anhand ihrer Id.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.EntityBase.GetHashCode">
+            <summary>
+            HashCode basierend auf Id.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.IEntity">
+            <summary>
+            Schnittstelle für persistierbare Entitäten mit einer integer Identität.
+            Implementierungen stellen mindestens die Eigenschaft <see cref="P:DataToolKit.Abstractions.Repositories.IEntity.Id"/> bereit.
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.IEntity.Id">
+            <summary>
+            Eindeutige Identität der Entität (Integer).
+            Die ID wird von LiteDB automatisch beim ersten Einfügen in eine <c>ILiteCollection</c> gesetzt.
+            Eine neu erzeugte Entität muss vor dem Einfügen den Wert <c>0</c> haben.
+            
+            Hinweis: Änderungen dieser <c>Id</c>-Eigenschaft sollten **keine** <c>PropertyChanged</c>-Benachrichtigung
+            auslösen. Implementierungen (z. B. in `EntityBase`) sollten das Setzen von <c>Id</c> still durchführen
+            oder spezielle Logik verwenden, damit Konsumenten nicht auf Id-Änderungen reagieren müssen.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.IRepository`1">
+            <summary>
+            Erweiterter Repository-Kontrakt für elementweise Änderungen an einzelnen Entitäten.
+            Erweitert <see cref="T:DataToolKit.Abstractions.Repositories.IRepositoryBase`1"/> um <see cref="M:DataToolKit.Abstractions.Repositories.IRepository`1.Update(`0)"/> und <see cref="M:DataToolKit.Abstractions.Repositories.IRepository`1.Delete(`0)"/>.
+            </summary>
+            <typeparam name="T">Der Entitätstyp, den dieses Repository verwaltet.</typeparam>
+            <remarks>
+            <para>
+            <b>Wichtig:</b> Dieses Interface wird nur von <c>LiteDbRepository&lt;T&gt;</c> implementiert,
+            nicht von <c>JsonRepository&lt;T&gt;</c>. JSON-Repositories unterstützen nur Volloperationen
+            über <see cref="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Write(System.Collections.Generic.IEnumerable{`0})"/>.
+            </para>
+            <para>
+            <b>Delta-Verhalten:</b> Im Gegensatz zu <see cref="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Write(System.Collections.Generic.IEnumerable{`0})"/>, das die
+            gesamte Collection ersetzt, ändern <see cref="M:DataToolKit.Abstractions.Repositories.IRepository`1.Update(`0)"/> und <see cref="M:DataToolKit.Abstractions.Repositories.IRepository`1.Delete(`0)"/> nur
+            die jeweils angegebene Entität.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.IRepository`1.Update(`0)">
+            <summary>
+            Aktualisiert eine einzelne vorhandene Entität im Repository.
+            </summary>
+            <param name="item">
+            Die zu aktualisierende Entität. Die Identifikation erfolgt typischerweise über die
+            <c>Id</c>-Eigenschaft (bei <see cref="T:DataToolKit.Abstractions.Repositories.IEntity"/>-Implementierungen).
+            </param>
+            <returns>
+            Die Anzahl der aktualisierten Datensätze (typischerweise <c>1</c> bei Erfolg, <c>0</c> wenn nicht gefunden).
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="item"/> <c>null</c> ist.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            Wenn die Entität eine ungültige <c>Id</c> hat (z.B. <c>Id &lt;= 0</c>).
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn die Entität nicht im Repository gefunden wurde (bei strikten Implementierungen).
+            </exception>
+            <remarks>
+            <para>
+            <b>Implementierungs-Hinweis:</b> LiteDB nutzt die <c>Id</c>-Eigenschaft zur Identifikation
+            und führt ein transaktionales Update durch.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.IRepository`1.Delete(`0)">
+            <summary>
+            Löscht eine einzelne Entität aus dem Repository.
+            </summary>
+            <param name="item">
+            Die zu löschende Entität. Die Identifikation erfolgt typischerweise über die
+            <c>Id</c>-Eigenschaft (bei <see cref="T:DataToolKit.Abstractions.Repositories.IEntity"/>-Implementierungen).
+            </param>
+            <returns>
+            Die Anzahl der gelöschten Datensätze (typischerweise <c>1</c> bei Erfolg, <c>0</c> wenn nicht gefunden).
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="item"/> <c>null</c> ist.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn die Entität nicht im Repository gefunden wurde (bei strikten Implementierungen).
+            </exception>
+            <remarks>
+            <para>
+            <b>Implementierungs-Hinweis:</b> LiteDB nutzt die <c>Id</c>-Eigenschaft zur Identifikation.
+            Wenn <c>Id &lt;= 0</c>, gibt die Methode <c>0</c> zurück (keine Exception).
+            </para>
+            </remarks>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.IRepositoryBase`1">
+            <summary>
+            Minimaler Basiskontrakt für Repositories mit atomaren Volloperationen:
+            Laden, Schreiben und Leeren der gesamten Collection.
+            </summary>
+            <typeparam name="T">Der Entitätstyp, den dieses Repository verwaltet.</typeparam>
+            <remarks>
+            <para>
+            <b>Atomarität:</b> Alle Operationen (<see cref="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Load"/>, <see cref="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Write(System.Collections.Generic.IEnumerable{`0})"/>, <see cref="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Clear"/>)
+            sind atomar, d.h. sie werden vollständig oder gar nicht ausgeführt.
+            </para>
+            <para>
+            <b>Thread-Safety:</b> Implementierungen sollten Thread-Safe sein. Konkurrierender Zugriff
+            auf <see cref="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Load"/> ist typischerweise sicher, aber gleichzeitige <see cref="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Write(System.Collections.Generic.IEnumerable{`0})"/>
+            oder <see cref="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Clear"/> Operationen sollten durch Lock-Mechanismen geschützt werden.
+            </para>
+            <para>
+            <b>IDisposable:</b> Repository-Implementierungen können Ressourcen wie Datenbankverbindungen
+            oder Dateizugriffe halten. Rufen Sie <see cref="M:System.IDisposable.Dispose"/> auf, wenn das Repository
+            nicht mehr benötigt wird, oder nutzen Sie <c>using</c>-Blöcke.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Load">
+            <summary>
+            Lädt die vollständige Collection aus dem Speicher atomar.
+            </summary>
+            <returns>
+            Eine schreibgeschützte Liste aller Entitäten. Bei leerem Repository wird eine leere Liste zurückgegeben.
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn der Speicherpfad ungültig ist oder das Repository nicht initialisiert wurde.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            Wenn ein Dateisystem-Fehler beim Lesen auftritt (z.B. bei JSON-Repositories).
+            </exception>
+            <remarks>
+            Die zurückgegebene Liste ist read-only (<see cref="T:System.Collections.Generic.IReadOnlyList`1"/>). Änderungen müssen
+            über <see cref="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Write(System.Collections.Generic.IEnumerable{`0})"/> persistiert werden.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Write(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Schreibt die vollständige Collection atomar in den Speicher.
+            Ersetzt alle bestehenden Daten vollständig.
+            </summary>
+            <param name="items">Die zu persistierende Collection von Entitäten.</param>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="items"/> <c>null</c> ist.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            Wenn die Collection <c>null</c>-Elemente enthält.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn der Speicherpfad ungültig ist oder die Transaktion fehlschlägt (bei LiteDB).
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            Wenn ein Dateisystem-Fehler beim Schreiben auftritt.
+            </exception>
+            <remarks>
+            <para>
+            <b>Wichtig:</b> Diese Operation ersetzt <b>alle</b> bestehenden Daten. Nicht in der
+            übergebenen Collection enthaltene Entitäten werden gelöscht.
+            </para>
+            <para>
+            <b>Atomarität:</b> Implementierungen garantieren atomares Schreiben (z.B. via
+            temporäre Dateien bei JSON oder Transaktionen bei LiteDB).
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.IRepositoryBase`1.Clear">
+            <summary>
+            Leert das Repository vollständig und atomar (löscht alle Entitäten).
+            </summary>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn das Repository nicht initialisiert ist oder die Operation fehlschlägt.
+            </exception>
+            <remarks>
+            Diese Operation ist äquivalent zu <c>Write(Array.Empty&lt;T&gt;())</c>.
+            </remarks>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.IStorageOptions`1">
+            <summary>
+            Generisches Interface für typsichere Storage-Optionen.
+            Jeder Datentyp T hat genau eine IStorageOptions&lt;T&gt;-Registrierung als Singleton im DI-Container.
+            </summary>
+            <typeparam name="T">Der Entitätstyp, für den diese Optionen gelten.</typeparam>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.AppSubFolder">
+            <summary>
+            Name des Anwendungs-Unterordners unterhalb von "Eigene Dokumente".
+            Beispiel: "TypeTutor", "DataToolKit".
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.SubFolder">
+            <summary>
+            Optionaler, zusätzlicher Unterordner innerhalb von <see cref="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.AppSubFolder"/>.
+            Dient der weiteren Strukturierung (z. B. "Backup", "Module", "Logs").
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.FileNameBase">
+            <summary>
+            Basisname der Zieldatei ohne Erweiterung.
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.RootFolder">
+            <summary>
+            Absoluter Pfad zum Benutzerordner "Eigene Dokumente".
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.EffectiveRoot">
+            <summary>
+            Vollständiger Pfad des Zielverzeichnisses:
+            MyDocuments\<see cref="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.AppSubFolder"/>\<see cref="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.SubFolder"/> (Sub optional).
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.FullPath">
+            <summary>
+            Vollständiger Dateipfad inklusive Dateiname und abgeleiteter Erweiterung.
+            Beispiel: C:\Users\Name\Documents\MyApp\data.json
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.ReferenceEqualityComparer`1">
+            <summary>
+            Referenzbasierter Gleichheitsvergleicher für Referenztypen.
+            Nützlich, um Doppelbindungen (Event-Handler) zu verhindern und Puffersätze per Referenz zu führen.
+            </summary>
+            <typeparam name="T">Referenztyp.</typeparam>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.RepositoryDiff`1">
+            <summary>
+            Ergebnis der Delta-Berechnung zwischen bestehendem DB-Bestand und neuem Zielbestand.
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.RepositoryDiff`1.ToUpdate">
+            <summary>Elemente, die inhaltlich geändert wurden und zu aktualisieren sind.</summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.RepositoryDiff`1.ToDeleteIds">
+            <summary>IDs, die in der DB existieren, im Zielbestand aber fehlen und zu löschen sind.</summary>
+        </member>
+        <member name="P:DataToolKit.Abstractions.Repositories.RepositoryDiff`1.ToInsert">
+            <summary>Neue Elemente (Id==0) und Elemente mit Id&gt;0, die in der DB fehlen (Missing-IDs-Policy).</summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.RepositoryDiffBuilder">
+            <summary>
+            Builder für Repository-Deltas (Updates/Deletes/Inserts) anhand einer ID-Selektion und eines Inhaltscomparers.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.RepositoryDiffBuilder.Build``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Func{``0,System.Int32},System.Collections.Generic.IEqualityComparer{``0},System.Boolean)">
+            <summary>
+            Erzeugt ein Delta für Entitäten mit ganzzahliger ID.
+            Standard-Policy: Wenn ein Element <c>Id&gt;0</c> hat, in der DB jedoch nicht existiert, wird es als INSERT behandelt.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.RepositoryDiffBuilder.BuildForEntityBase``1(System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEnumerable{``0},System.Collections.Generic.IEqualityComparer{``0},System.Boolean)">
+            <summary>
+            Komfortvariante für <see cref="T:DataToolKit.Abstractions.Repositories.EntityBase"/>: nutzt <c>e =&gt; e.Id</c> als ID-Selektor.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Abstractions.Repositories.StoragePathHelpers">
+            <summary>
+            Hilfsklasse zur konsistenten Erzeugung und Normalisierung von Datei- und Verzeichnispfaden.
+            Zweck:
+            - zentrale, wiederverwendbare Pfadlogik ohne Geschäftslogik
+            - klar testbare, reine Funktionen (bis auf das gezielte Anlegen von Verzeichnissen)
+            
+            Hinweise:
+            - Diese Klasse ist bewusst im gleichen Namespace wie die Optionsklassen gehalten,
+              um weitere Verschachtelungen zu vermeiden.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.StoragePathHelpers.NormalizeFileNameBaseOrThrow(System.String)">
+            <summary>
+            Normalisiert den Basis-Dateinamen:
+            - wirft bei null/leer/Whitespace
+            - trimmt führende/trailing Leerzeichen
+            - entfernt eine versehentlich mitgegebene Dateierweiterung (z. B. ".json")
+            
+            Ergebnis ist immer ein nackter Dateiname ohne Erweiterung.
+            </summary>
+            <param name="fileNameBase">Vom Aufrufer gewünschter Basisname ohne Erweiterung.</param>
+            <returns>Bereinigter Basisname (ohne Erweiterung).</returns>
+            <exception cref="T:System.ArgumentException">Wenn der Name leer oder nur Whitespace ist.</exception>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.StoragePathHelpers.CombineRootWithOptionalSub(System.String,System.String)">
+            <summary>
+            Kombiniert einen Root-Pfad mit einem optionalen Unterordner.
+            Ist der Unterordner leer oder null, wird nur der Root-Pfad verwendet.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.StoragePathHelpers.BuildFullPath(System.String,System.String,System.String,System.String)">
+            <summary>
+            Baut einen vollständigen Dateipfad aus Root, optionalem Unterordner, Basisname und Dateiendung.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.StoragePathHelpers.EnsureDirectoryFor(System.String,System.String)">
+            <summary>
+            Stellt sicher, dass das effektive Verzeichnis existiert.
+            Ist es bereits vorhanden, geschieht nichts; andernfalls wird es angelegt.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Abstractions.Repositories.StoragePathHelpers.GetMyDocuments">
+            <summary>
+            Liefert den absoluten Pfad zum Benutzerordner "Eigene Dokumente" (MyDocuments).
+            Dieser Ordner ist die feste Wurzel für alle dateibasierten Speicherpfade in dieser Bibliothek.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Relationships.ParentChildRelationship`2">
+            <summary>
+            Verwaltet eine 1:n-Beziehung zwischen einem statischen Parent-Objekt und einer gefilterten Auflistung von Child-Elementen.
+            </summary>
+            <typeparam name="TParent">Typ des Parent-Objekts.</typeparam>
+            <typeparam name="TChild">Typ der Child-Elemente (muss eine Klasse sein).</typeparam>
+            <remarks>
+            <para>
+            <b>Architektur:</b>
+            </para>
+            <list type="bullet">
+            <item>
+            <b>DataSource:</b> Enthält ALLE potentiellen Child-Elemente (z.B. alle Orders).
+            CollectionChanged wird manuell überwacht.
+            </item>
+            <item>
+            <b>PropertyChangedBinder:</b> Überwacht PropertyChanged für ALLE Items in DataSource,
+            um zu erkennen, wenn ein Item durch Property-Änderung die Filterbedingung erfüllt/nicht mehr erfüllt.
+            </item>
+            <item>
+            <b>Childs:</b> Enthält nur die gefilterten Items, die zum Parent gehören.
+            </item>
+            </list>
+            <para>
+            <b>Funktionsweise:</b>
+            </para>
+            <list type="bullet">
+            <item>Die <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.DataSource"/> stellt alle potentiellen Child-Elemente bereit.</item>
+            <item>Der <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.IsChildFilter"/> entscheidet, welche Elemente zum <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.Parent"/> gehören.</item>
+            <item>Die <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.Childs"/>-Collection wird automatisch synchronisiert.</item>
+            </list>
+            <para>
+            <b>Parent-Handling:</b> Das Parent-Objekt ist statisch und kann nur einmal gesetzt werden.
+            Eine Änderung zur Laufzeit ist nicht vorgesehen.
+            </para>
+            <para>
+            <b>Performance:</b> Optimiert für geringe Datenmengen (&lt; 100 Einträge) und moderate Änderungshäufigkeit.
+            </para>
+            <para>
+            <b>Verwendung:</b>
+            </para>
+            <code>
+            // Variante 1: Automatisches Laden der DataSource via GetDataStore
+            var relationship = new ParentChildRelationship&lt;Customer, Order&gt;(dataStoreProvider)
+            {
+                Parent = selectedCustomer,
+                IsChildFilter = (customer, order) => order.CustomerId == customer.Id
+            };
+            // DataSource wird automatisch via provider.GetDataStore&lt;Order&gt;() geladen
+            
+            // Variante 2: Explizite DataSource-Zuweisung
+            var relationship = new ParentChildRelationship&lt;Customer, Order&gt;(dataStoreProvider)
+            {
+                DataSource = customOrderStore,
+                Parent = selectedCustomer,
+                IsChildFilter = (customer, order) => order.CustomerId == customer.Id
+            };
+            
+            // Childs wird automatisch aktualisiert
+            var orders = relationship.Childs.Items;
+            </code>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Relationships.ParentChildRelationship`2.#ctor(DataToolKit.Abstractions.DataStores.IDataStoreProvider)">
+            <summary>
+            Erstellt eine neue Instanz zur Verwaltung von Parent-Child-Beziehungen.
+            </summary>
+            <param name="dataStoreProvider">Provider zum Abrufen des DataStores für Child-Elemente.</param>
+            <exception cref="T:System.ArgumentNullException">Wenn <paramref name="dataStoreProvider"/> null ist.</exception>
+            <remarks>
+            Nach der Konstruktion müssen <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.Parent"/> und <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.IsChildFilter"/> gesetzt werden,
+            damit die Synchronisation funktioniert.
+            </remarks>
+        </member>
+        <member name="P:DataToolKit.Relationships.ParentChildRelationship`2.Parent">
+            <summary>
+            Das Parent-Objekt der Beziehung.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn versucht wird, Parent nach der ersten Zuweisung erneut zu setzen.
+            </exception>
+            <remarks>
+            <para>
+            <b>Wichtig:</b> Das Parent-Objekt kann nur einmal gesetzt werden und ist danach unveränderlich.
+            Dies entspricht dem Anwendungsfall, dass eine Relationship-Instanz für ein spezifisches
+            Parent-Objekt erstellt wird.
+            </para>
+            <para>
+            Beim Setzen wird automatisch eine Neusynchronisation der <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.Childs"/>-Collection ausgelöst.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:DataToolKit.Relationships.ParentChildRelationship`2.IsChildFilter">
+            <summary>
+            Filter-Funktion zur Bestimmung, ob ein Child-Element zum aktuellen Parent gehört.
+            </summary>
+            <remarks>
+            <para>
+            Die Funktion erhält das Parent-Objekt und ein Child-Element und gibt <c>true</c> zurück,
+            wenn das Child zum Parent gehört.
+            </para>
+            <para>
+            <b>Beispiel:</b>
+            <code>
+            IsChildFilter = (customer, order) => order.CustomerId == customer.Id;
+            </code>
+            </para>
+            <para>
+            Beim Setzen wird automatisch eine Neusynchronisation der <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.Childs"/>-Collection ausgelöst.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:DataToolKit.Relationships.ParentChildRelationship`2.DataSource">
+            <summary>
+            DataSource für alle potentiellen Child-Elemente.
+            </summary>
+            <remarks>
+            <para>
+            <b>Lazy Initialization:</b> Wenn nicht explizit gesetzt, wird beim ersten Zugriff
+            automatisch <c>provider.GetDataStore&lt;TChild&gt;()</c> aufgerufen.
+            </para>
+            <para>
+            <b>Explizite Zuweisung:</b> Sie können auch manuell einen DataStore zuweisen,
+            z.B. einen nicht-Singleton-Store oder einen gefilterten Store.
+            </para>
+            <para>
+            Beim Setzen werden alte Event-Subscriptions entfernt und neue erstellt.
+            Die <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.Childs"/>-Collection wird automatisch neu synchronisiert.
+            </para>
+            </remarks>
+        </member>
+        <member name="P:DataToolKit.Relationships.ParentChildRelationship`2.Childs">
+            <summary>
+            Schreibgeschützte Auflistung der gefilterten Child-Elemente.
+            </summary>
+            <remarks>
+            Diese Collection wird automatisch synchronisiert bei Änderungen in <see cref="P:DataToolKit.Relationships.ParentChildRelationship`2.DataSource"/>
+            oder Properties von DataSource-Items.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Relationships.ParentChildRelationship`2.SubscribeToDataSource">
+            <summary>
+            Abonniert CollectionChanged-Events der DataSource und bindet PropertyChanged für existierende Items.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Relationships.ParentChildRelationship`2.UnsubscribeFromDataSource">
+            <summary>
+            Entfernt Event-Subscriptions von der aktuellen DataSource.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Relationships.ParentChildRelationship`2.OnDataSourceCollectionChanged(System.Object,System.Collections.Specialized.NotifyCollectionChangedEventArgs)">
+            <summary>
+            Behandelt Änderungen in der DataSource-Collection.
+            </summary>
+            <remarks>
+            <para>
+            <b>Add:</b> Neue Items werden auf PropertyChanged überwacht und gefiltert.
+            Nur passende Items werden zu Childs hinzugefügt.
+            </para>
+            <para>
+            <b>Remove:</b> Entfernte Items werden von PropertyChanged entbunden und aus Childs entfernt.
+            </para>
+            <para>
+            <b>Reset:</b> Komplette Neusynchronisation - alle Items neu filtern.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Relationships.ParentChildRelationship`2.OnChildPropertyChanged(`1)">
+            <summary>
+            Behandelt PropertyChanged-Events von Child-Items in der DataSource.
+            </summary>
+            <remarks>
+            Wird vom <see cref="T:DataToolKit.Storage.Persistence.PropertyChangedBinder`1"/> aufgerufen, wenn sich eine Property
+            eines Child-Items ändert (z.B. ForeignKey). Prüft, ob das Item zum Parent gehört
+            oder entfernt werden muss.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Relationships.ParentChildRelationship`2.SynchronizeChilds">
+            <summary>
+            Synchronisiert die Childs-Collection basierend auf aktuellem Parent und Filter.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Relationships.ParentChildRelationship`2.ShouldIncludeChild(`1)">
+            <summary>
+            Prüft, ob ein Child-Element zum aktuellen Parent gehört.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Relationships.ParentChildRelationship`2.Dispose">
+            <summary>
+            Gibt alle Ressourcen frei und entfernt Event-Subscriptions.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.DataStores.DataStoreFactory">
+            <summary>
+            Standard-Factory zur Erzeugung von DataStore-Instanzen.
+            Erzeugt nur Instanzen - keine zusätzliche Logik.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreFactory.CreateInMemoryStore``1(System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Erstellt einen InMemoryDataStore.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreFactory.CreatePersistentStore``1(DataToolKit.Abstractions.Repositories.IRepositoryBase{``0},System.Boolean)">
+            <summary>
+            Erstellt einen PersistentDataStore (ohne geladene Daten).
+            </summary>
+            <remarks>
+            Funktioniert mit POCOs (JSON-Repository) und EntityBase (LiteDB-Repository).
+            </remarks>
+        </member>
+        <member name="T:DataToolKit.Storage.DataStores.DataStoreProvider">
+            <summary>
+            Thread-sicherer Provider zur Verwaltung von DataStore-Instanzen.
+            Verwaltet Singleton-Instanzen in einem Dictionary pro Typ UND Store-Art.
+            </summary>
+            <remarks>
+            <para>
+            <b>Thread-Safety:</b> Alle Operationen sind durch <see cref="T:System.Threading.SemaphoreSlim"/> geschützt.
+            Konkurrierender Zugriff auf Singleton-Instanzen ist sicher.
+            </para>
+            <para>
+            <b>AutoLoad:</b> PersistentDataStores können beim Abrufen automatisch geladen werden.
+            Dies geschieht im Provider, nicht in der Factory (Separation of Concerns).
+            </para>
+            <para>
+            <b>Repository-Auswahl:</b> Automatische Erkennung basierend auf Typ:
+            - <see cref="T:DataToolKit.Abstractions.Repositories.EntityBase"/>-Typen ? LiteDB-Repository (granulare Operationen)
+            - Nur <see cref="T:DataToolKit.Abstractions.Repositories.IEntity"/>-Typen ? JSON-Repository (atomares WriteAll)
+            </para>
+            <para>
+            <b>Singleton-Keys:</b> Verwendet separate Keys für InMemory vs. Persistent Stores,
+            um Kollisionen zu vermeiden.
+            </para>
+            <para>
+            <b>Dispose:</b> Beim Entfernen von Singletons wird automatisch <c>Dispose()</c> aufgerufen,
+            falls die Instanz <see cref="T:System.IDisposable"/> implementiert.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.#ctor(DataToolKit.Abstractions.DataStores.IDataStoreFactory)">
+            <summary>
+            Erstellt einen DataStoreProvider mit der angegebenen Factory.
+            </summary>
+            <param name="factory">Factory zur Erzeugung von DataStore-Instanzen.</param>
+            <exception cref="T:System.ArgumentNullException">Wenn <paramref name="factory"/> null ist.</exception>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetInMemoryKey``1">
+            <summary>
+            Erzeugt einen eindeutigen Cache-Key für den Store-Typ.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetPersistentKey``1">
+            <summary>
+            Erzeugt einen eindeutigen Cache-Key für den Store-Typ.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetDataStore``1">
+            <summary>
+            Gibt einen bereits registrierten DataStore zurück, unabhängig davon ob InMemory oder Persistent.
+            </summary>
+            <typeparam name="T">Der Entitätstyp des DataStores.</typeparam>
+            <returns>Der bereits existierende DataStore.</returns>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn kein DataStore für den Typ <typeparamref name="T"/> registriert wurde.
+            </exception>
+            <remarks>
+            <para>
+            Diese Methode erstellt <b>keinen</b> neuen DataStore, sondern gibt nur einen bereits
+            existierenden zurück. Sie ist nützlich für Komponenten, die einen DataStore verwenden möchten,
+            ohne zu wissen ob er als InMemory oder Persistent erstellt wurde.
+            </para>
+            <para>
+            <b>Verwendung:</b>
+            </para>
+            <code>
+            // Irgendwo in der Anwendung (z.B. Startup):
+            var customerStore = provider.GetPersistent&lt;Customer&gt;(factory, autoLoad: true);
+            
+            // Später in einer Komponente:
+            var store = provider.GetDataStore&lt;Customer&gt;();  // Gibt den gleichen Store zurück
+            </code>
+            <para>
+            <b>Fehlerbehandlung:</b> Wenn kein DataStore gefunden wird, enthält die Exception eine
+            hilfreiche Fehlermeldung mit Anweisungen, wie der Store vorher erstellt werden muss.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetDataStoreAsync``1">
+            <summary>
+            Gibt einen bereits registrierten DataStore asynchron zurück, unabhängig davon ob InMemory oder Persistent.
+            </summary>
+            <typeparam name="T">Der Entitätstyp des DataStores.</typeparam>
+            <returns>Der bereits existierende DataStore.</returns>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn kein DataStore für den Typ <typeparamref name="T"/> registriert wurde.
+            </exception>
+            <remarks>
+            Asynchrone Variante von <see cref="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetDataStore``1"/>. Siehe dort für Details.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetInMemory``1(System.Boolean,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Gibt einen InMemoryDataStore zurück (thread-safe).
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetInMemoryAsync``1(System.Boolean,System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Gibt einen InMemoryDataStore asynchron zurück (thread-safe).
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetPersistent``1(DataToolKit.Storage.Repositories.IRepositoryFactory,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Gibt einen PersistentDataStore zurück (thread-safe, mit optionalem AutoLoad).
+            </summary>
+            <remarks>
+            <para>
+            <b>Repository-Auswahl:</b> Automatisch basierend auf Typ:
+            </para>
+            <list type="bullet">
+            <item><see cref="T:DataToolKit.Abstractions.Repositories.EntityBase"/>-Typen ? LiteDB-Repository (granulare Operationen mit Update/Delete)</item>
+            <item>POCOs (nur class) ? JSON-Repository (atomares WriteAll)</item>
+            </list>
+            <para>
+            <b>AutoLoad:</b> Wenn <c>true</c>, werden Daten sofort aus dem Repository geladen.
+            Bei <c>false</c> muss <c>store.Load()</c> manuell aufgerufen werden.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetPersistentAsync``1(DataToolKit.Storage.Repositories.IRepositoryFactory,System.Boolean,System.Boolean,System.Boolean)">
+            <summary>
+            Gibt einen PersistentDataStore asynchron zurück (thread-safe, mit optionalem AutoLoad).
+            </summary>
+            <remarks>
+            Asynchrone Variante von <see cref="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetPersistent``1(DataToolKit.Storage.Repositories.IRepositoryFactory,System.Boolean,System.Boolean,System.Boolean)"/>. Siehe dort für Details zur Repository-Auswahl.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.ResolveRepository``1(DataToolKit.Storage.Repositories.IRepositoryFactory)">
+            <summary>
+            Löst das passende Repository basierend auf dem Typ auf.
+            </summary>
+            <remarks>
+            <para>
+            <b>Auswahl-Logik:</b>
+            </para>
+            <list type="number">
+            <item><see cref="T:DataToolKit.Abstractions.Repositories.EntityBase"/>-Typen ? LiteDB-Repository (hat Update/Delete für granulare Operationen)</item>
+            <item>Alle anderen Typen (POCOs) ? JSON-Repository (atomares WriteAll, funktioniert mit jedem POCO)</item>
+            </list>
+            <para>
+            <b>Wichtig:</b> LiteDB benötigt <see cref="T:DataToolKit.Abstractions.Repositories.IEntity"/> (für Id-Property), daher nur für EntityBase.
+            JSON-Repository funktioniert mit jedem Typ ohne Einschränkungen.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.RemoveSingleton``1">
+            <summary>
+            Entfernt eine Singleton-Instanz aus dem Cache (mit Dispose).
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.ClearAll">
+            <summary>
+            Entfernt alle Singleton-Instanzen (mit Dispose).
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.Dispose">
+            <summary>
+            Gibt alle Ressourcen frei und disposed alle Singleton-Instanzen.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.DataStores.InMemoryDataStore`1">
+            <summary>
+            Basisklasse für in-memory DataStores.
+            - Verwaltet intern eine <see cref="T:System.Collections.ObjectModel.ObservableCollection`1"/> und stellt über <see cref="T:System.Collections.ObjectModel.ReadOnlyObservableCollection`1"/> eine schreibgeschützte Sicht bereit.
+            - Unterstützt einen optionalen <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> für konsistente Duplikats-/Entfernungslogik.
+            - Ist thread-bewusst: Mutationen werden (falls erforderlich) auf den im Konstruktor erfassten <see cref="T:System.Threading.SynchronizationContext"/> marshalt.
+            </summary>
+            <typeparam name="T">Typ der Elemente, die verwaltet werden.</typeparam>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.InMemoryDataStore`1.#ctor(System.Collections.Generic.IEqualityComparer{`0},System.Threading.SynchronizationContext)">
+            <summary>
+            Erstellt eine neue Instanz des <see cref="T:DataToolKit.Storage.DataStores.InMemoryDataStore`1"/>.
+            </summary>
+            <param name="comparer">
+            Optionaler Gleichheitsvergleicher. Wird <c>null</c> übergeben, kommt <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/> zum Einsatz.
+            </param>
+            <param name="context">
+            Optionaler SynchronizationContext. Standard ist <see cref="P:System.Threading.SynchronizationContext.Current"/> zum Zeitpunkt des Konstruktors.
+            Alle Mutationen werden – falls vom aufrufenden Thread abweichend – synchron auf diesen Context marshalt.
+            Ist kein Context verfügbar (<c>null</c>), erfolgen Mutationen ohne Marshaling (Achtung: dann selbst für Threadsicherheit sorgen).
+            </param>
+        </member>
+        <member name="P:DataToolKit.Storage.DataStores.InMemoryDataStore`1.Items">
+            <inheritdoc />
+        </member>
+        <member name="P:DataToolKit.Storage.DataStores.InMemoryDataStore`1.Count">
+            <inheritdoc />
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.InMemoryDataStore`1.Add(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.InMemoryDataStore`1.AddRange(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc />
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.InMemoryDataStore`1.Remove(`0)">
+            <inheritdoc />
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.InMemoryDataStore`1.RemoveRange(System.Collections.Generic.IEnumerable{`0})">
+            <inheritdoc />
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.InMemoryDataStore`1.RemoveWhere(System.Predicate{`0})">
+            <inheritdoc />
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.InMemoryDataStore`1.Clear">
+            <inheritdoc />
+        </member>
+        <member name="T:DataToolKit.Storage.DataStores.JsonPersistenceStrategy`1">
+            <summary>
+            Persistierungs-Strategie für JSON-Repositories.
+            Schreibt bei jeder Änderung die gesamte Collection atomar ins Repository.
+            </summary>
+            <typeparam name="T">Entitätstyp (class constraint - funktioniert mit jedem POCO).</typeparam>
+            <remarks>
+            <para>
+            <b>Funktionsweise:</b> JSON-Repositories arbeiten atomar - bei jedem Write wird die
+            gesamte Datei neu geschrieben. Dies ist für kleine Datenmengen (&lt; 100 Einträge) optimal,
+            da der Overhead minimal ist und atomare Konsistenz garantiert wird.
+            </para>
+            <para>
+            <b>Performance:</b> Alle Operationen (Add/Remove/PropertyChanged) führen zu einem
+            vollständigen <c>Write()</c>. Bei &lt; 100 Einträgen ist dies unkritisch.
+            </para>
+            <para>
+            <b>POCO-Unterstützung:</b> Diese Strategie funktioniert mit jedem POCO ohne IEntity-Requirement.
+            Perfekt für Settings, Konfigurationen und einfache Datenklassen.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.JsonPersistenceStrategy`1.#ctor(DataToolKit.Abstractions.Repositories.IRepositoryBase{`0},System.Func{System.Collections.Generic.IReadOnlyList{`0}})">
+            <summary>
+            Erstellt eine JSON-Strategie.
+            </summary>
+            <param name="repository">Das JSON-Repository (IRepositoryBase).</param>
+            <param name="itemsAccessor">Funktion zum Zugriff auf die aktuelle Collection.</param>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="repository"/> oder <paramref name="itemsAccessor"/> null ist.
+            </exception>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.JsonPersistenceStrategy`1.OnAdded(`0)">
+            <summary>
+            Bei Add: Gesamte Collection schreiben.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.JsonPersistenceStrategy`1.OnRemoved(`0)">
+            <summary>
+            Bei Remove: Gesamte Collection schreiben.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.JsonPersistenceStrategy`1.OnEntityChanged(`0)">
+            <summary>
+            Bei PropertyChanged: Gesamte Collection schreiben.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.JsonPersistenceStrategy`1.OnCleared">
+            <summary>
+            Bei Clear: Repository leeren (ruft Clear() auf dem Repository auf).
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.JsonPersistenceStrategy`1.WriteAll">
+            <summary>
+            Schreibt die aktuelle Collection vollständig ins JSON-Repository.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.JsonPersistenceStrategy`1.Dispose">
+            <summary>
+            Gibt Ressourcen frei (keine Ressourcen in dieser Strategie).
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.DataStores.LiteDbPersistenceStrategy`1">
+            <summary>
+            Persistierungs-Strategie für LiteDB-Repositories.
+            Nutzt granulare Operationen (Update, Delete) wo möglich.
+            </summary>
+            <typeparam name="T">Entitätstyp (muss IEntity implementieren für Id-Property).</typeparam>
+            <remarks>
+            <para>
+            <b>Funktionsweise:</b> LiteDB unterstützt feingranulare Operationen über <see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/>.
+            Diese Strategie nutzt <c>Update()</c> und <c>Delete()</c> für einzelne Entitäten, was performanter
+            ist als ein vollständiges <c>Write()</c> der Collection.
+            </para>
+            <para>
+            <b>IEntity-Requirement:</b> Diese Strategie benötigt die <c>Id</c>-Property aus <see cref="T:DataToolKit.Abstractions.Repositories.IEntity"/>,
+            um zu prüfen, ob eine Entität bereits persistiert ist (<c>Id &gt; 0</c>). Typischerweise wird
+            <see cref="T:DataToolKit.Abstractions.Repositories.EntityBase"/> als Basisklasse verwendet.
+            </para>
+            <para>
+            <b>Add-Operationen:</b> Da <see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/> keine <c>Insert()</c>-Methode hat,
+            wird bei Add die gesamte Collection geschrieben. LiteDB erkennt automatisch neue Entitäten
+            (mit <c>Id = 0</c>) und weist ihnen IDs zu (Delta-Detection).
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.LiteDbPersistenceStrategy`1.#ctor(DataToolKit.Abstractions.Repositories.IRepository{`0},System.Func{System.Collections.Generic.IReadOnlyList{`0}})">
+            <summary>
+            Erstellt eine LiteDB-Strategie.
+            </summary>
+            <param name="repository">Das LiteDB-Repository (IRepository mit Update/Delete).</param>
+            <param name="itemsAccessor">Funktion zum Zugriff auf die aktuelle Collection.</param>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="repository"/> oder <paramref name="itemsAccessor"/> null ist.
+            </exception>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.LiteDbPersistenceStrategy`1.OnAdded(`0)">
+            <summary>
+            Bei Add: Gesamte Collection schreiben.
+            </summary>
+            <remarks>
+            LiteDB hat keine explizite Insert-Methode in <see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/>.
+            Daher wird <c>Write()</c> verwendet, welches Delta-Detection macht:
+            Neue Entitäten (Id = 0) werden automatisch erkannt und eingefügt.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.LiteDbPersistenceStrategy`1.OnRemoved(`0)">
+            <summary>
+            Bei Remove: Granulares Delete nutzen.
+            </summary>
+            <remarks>
+            Nutzt <see cref="M:DataToolKit.Abstractions.Repositories.IRepository`1.Delete(`0)"/> für performante Einzellöschung.
+            Nur Entitäten mit <c>Id &gt; 0</c> werden gelöscht (bereits persistierte Entitäten).
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.LiteDbPersistenceStrategy`1.OnEntityChanged(`0)">
+            <summary>
+            Bei PropertyChanged: Granulares Update nutzen.
+            </summary>
+            <remarks>
+            Nutzt <see cref="M:DataToolKit.Abstractions.Repositories.IRepository`1.Update(`0)"/> für performante Einzelaktualisierung.
+            Nur Entitäten mit <c>Id &gt; 0</c> werden aktualisiert (bereits persistierte Entitäten).
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.LiteDbPersistenceStrategy`1.OnCleared">
+            <summary>
+            Bei Clear: Repository komplett leeren.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.LiteDbPersistenceStrategy`1.Dispose">
+            <summary>
+            Gibt Ressourcen frei (keine Ressourcen in dieser Strategie).
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.DataStores.PersistenceStrategyFactory">
+            <summary>
+            Factory zur automatischen Auswahl der passenden Persistierungs-Strategie
+            basierend auf dem Repository-Typ (JSON oder LiteDB).
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.PersistenceStrategyFactory.Create``1(DataToolKit.Abstractions.Repositories.IRepositoryBase{``0},System.Func{System.Collections.Generic.IReadOnlyList{``0}})">
+            <summary>
+            Erstellt die passende Persistenzstrategie basierend auf Repository-Fähigkeiten.
+            </summary>
+            <typeparam name="T">Entitätstyp (class constraint - funktioniert mit POCOs und EntityBase).</typeparam>
+            <param name="repository">Das Repository (IRepositoryBase oder IRepository).</param>
+            <param name="currentItemsAccessor">Funktion zum Zugriff auf die aktuelle Collection.</param>
+            <returns>
+            Eine <see cref="T:DataToolKit.Abstractions.DataStores.IPersistenceStrategy`1"/>-Implementierung:
+            - <see cref="T:DataToolKit.Storage.DataStores.LiteDbPersistenceStrategy`1"/> wenn Repository <see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/> implementiert (granulare Operationen, benötigt IEntity)
+            - <see cref="T:DataToolKit.Storage.DataStores.JsonPersistenceStrategy`1"/> für <see cref="T:DataToolKit.Abstractions.Repositories.IRepositoryBase`1"/> (atomares WriteAll, funktioniert mit jedem POCO)
+            </returns>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="repository"/> oder <paramref name="currentItemsAccessor"/> null ist.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn Repository IRepository{T} implementiert, aber T nicht IEntity implementiert.
+            </exception>
+            <remarks>
+            <para>
+            <b>LiteDB-Erkennung:</b> Wenn das Repository <see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/> implementiert,
+            werden die Methoden <c>Update()</c> und <c>Delete()</c> genutzt für granulare Persistierung.
+            Dies erfordert IEntity (für die Id-Property).
+            </para>
+            <para>
+            <b>JSON-Fallback:</b> Alle anderen Repositories (nur <see cref="T:DataToolKit.Abstractions.Repositories.IRepositoryBase`1"/>)
+            nutzen atomares <c>Write()</c> für die gesamte Collection. Funktioniert mit jedem POCO.
+            </para>
+            </remarks>
+        </member>
+        <member name="T:DataToolKit.Storage.DataStores.PersistentDataStore`1">
+            <summary>
+            Persistenter DataStore für kleine Datenmengen (&lt; 100 Einträge).
+            Kombiniert In-Memory-Verwaltung mit sofortiger Persistierung.
+            </summary>
+            <typeparam name="T">Entitätstyp (class constraint - funktioniert mit POCOs und EntityBase).</typeparam>
+            <remarks>
+            <para>
+            <b>Automatische Strategie-Auswahl:</b>
+            </para>
+            <list type="bullet">
+            <item><b>JSON-Repository</b> (<see cref="T:DataToolKit.Abstractions.Repositories.IRepositoryBase`1"/>): Alle Änderungen führen zu vollständigem <c>Write()</c></item>
+            <item><b>LiteDB-Repository</b> (<see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/>): Nutzt granulare <c>Update()</c> und <c>Delete()</c></item>
+            </list>
+            <para>
+            <b>PropertyChanged-Tracking:</b> Wenn aktiviert, werden Änderungen an Entitäts-Properties
+            automatisch erkannt (via <see cref="T:System.ComponentModel.INotifyPropertyChanged"/>) und persistiert.
+            </para>
+            <para>
+            <b>Verwendung mit POCOs (JSON):</b>
+            </para>
+            <code>
+            // POCO ohne EntityBase
+            public class Settings
+            {
+                public string Theme { get; set; }
+                public int FontSize { get; set; }
+            }
+            
+            var jsonRepo = new JsonRepository&lt;Settings&gt;(options);
+            var store = new PersistentDataStore&lt;Settings&gt;(jsonRepo);
+            store.Load();
+            store.Add(new Settings { Theme = "Dark" });  // Sofort persistiert
+            </code>
+            <para>
+            <b>Verwendung mit EntityBase (LiteDB):</b>
+            </para>
+            <code>
+            public class Customer : EntityBase
+            {
+                public string Name { get; set; }
+            }
+            
+            var liteDbRepo = new LiteDbRepository&lt;Customer&gt;(options, comparer);
+            var store = new PersistentDataStore&lt;Customer&gt;(liteDbRepo);
+            store.Load();
+            store.Add(new Customer { Name = "Alice" });  // Sofort persistiert
+            
+            var customer = store.Items.First();
+            customer.Name = "Bob";  // Sofort persistiert (via PropertyChanged)
+            </code>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.#ctor(DataToolKit.Abstractions.Repositories.IRepositoryBase{`0},System.Boolean)">
+            <summary>
+            Erstellt einen PersistentDataStore mit automatischer Strategie-Auswahl.
+            </summary>
+            <param name="repository">
+            Repository für Persistierung. Kann <see cref="T:DataToolKit.Abstractions.Repositories.IRepositoryBase`1"/> (JSON)
+            oder <see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/> (LiteDB) sein. Die Strategie wird automatisch gewählt.
+            </param>
+            <param name="trackPropertyChanges">
+            Wenn <c>true</c>, werden Änderungen an Entitäts-Properties automatisch
+            persistiert (via <see cref="T:System.ComponentModel.INotifyPropertyChanged"/>).
+            Entitäten müssen <see cref="T:System.ComponentModel.INotifyPropertyChanged"/> implementieren.
+            Standard: <c>true</c>.
+            </param>
+            <exception cref="T:System.ArgumentNullException">Wenn <paramref name="repository"/> null ist.</exception>
+            <remarks>
+            Nach der Konstruktion sollte <see cref="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.Load"/> aufgerufen werden, um Daten zu laden.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.Load">
+            <summary>
+            Lädt alle Daten aus dem Repository und füllt die In-Memory-Collection.
+            </summary>
+            <exception cref="T:System.InvalidOperationException">Wenn beim Laden ein Fehler auftritt.</exception>
+            <exception cref="T:System.IO.IOException">Bei Dateisystem-Fehlern (JSON-Repository).</exception>
+            <remarks>
+            <para>
+            Diese Methode sollte typischerweise direkt nach der Konstruktion aufgerufen werden.
+            Bereits geladene Items werden mit PropertyChanged-Tracking verbunden (falls aktiviert).
+            </para>
+            <para>
+            <b>Wichtig:</b> Diese Methode löst <b>keine</b> Persistierung aus - die Daten werden
+            nur aus dem Repository geladen und in die In-Memory-Collection eingefügt.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.Add(`0)">
+            <summary>
+            Fügt ein Element zur Collection hinzu und persistiert sofort.
+            </summary>
+            <param name="item">Das hinzuzufügende Element.</param>
+            <returns><c>true</c>, wenn das Element hinzugefügt wurde; <c>false</c>, wenn es bereits existiert.</returns>
+            <exception cref="T:System.ArgumentNullException">Wenn <paramref name="item"/> null ist.</exception>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.AddRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Fügt mehrere Elemente zur Collection hinzu und persistiert sofort.
+            </summary>
+            <param name="items">Die hinzuzufügenden Elemente.</param>
+            <returns>Anzahl der tatsächlich hinzugefügten Elemente.</returns>
+            <exception cref="T:System.ArgumentNullException">Wenn <paramref name="items"/> null ist.</exception>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.Remove(`0)">
+            <summary>
+            Entfernt ein Element aus der Collection und persistiert sofort.
+            </summary>
+            <param name="item">Das zu entfernende Element.</param>
+            <returns><c>true</c>, wenn das Element entfernt wurde; <c>false</c>, wenn es nicht gefunden wurde.</returns>
+            <exception cref="T:System.ArgumentNullException">Wenn <paramref name="item"/> null ist.</exception>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.RemoveRange(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Entfernt mehrere Elemente aus der Collection und persistiert sofort.
+            </summary>
+            <param name="items">Die zu entfernenden Elemente.</param>
+            <returns>Anzahl der entfernten Elemente.</returns>
+            <exception cref="T:System.ArgumentNullException">Wenn <paramref name="items"/> null ist.</exception>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.Clear">
+            <summary>
+            Leert die Collection vollständig und persistiert die Änderung sofort.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.Dispose">
+            <summary>
+            Gibt Ressourcen frei und trennt alle PropertyChanged-Bindings.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.Persistence.PropertyChangedBinder`1">
+            <summary>
+            Bindet einmalig pro Entität an INotifyPropertyChanged und ruft beim Eintreten die angegebene Aktion auf.
+            Doppelbindungen werden zuverlässig verhindert (idempotentes Attach).
+            </summary>
+            <remarks>
+            <para>
+            <b>Zwei Modi:</b>
+            </para>
+            <list type="number">
+            <item>
+            <b>Manueller Modus:</b> <see cref="M:DataToolKit.Storage.Persistence.PropertyChangedBinder`1.Attach(`0)"/>/<see cref="M:DataToolKit.Storage.Persistence.PropertyChangedBinder`1.Detach(`0)"/> werden explizit aufgerufen.
+            </item>
+            <item>
+            <b>DataStore-Modus:</b> Über <see cref="M:DataToolKit.Storage.Persistence.PropertyChangedBinder`1.AttachToDataStore(DataToolKit.Abstractions.DataStores.IDataStore{`0})"/> wird automatisch auf 
+            CollectionChanged-Events reagiert und Items werden synchronisiert.
+            </item>
+            </list>
+            <para>
+            <b>Idempotenz:</b> Mehrfaches Attach derselben Instanz ist sicher - es wird nur einmal gebunden.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.Persistence.PropertyChangedBinder`1.#ctor(System.Boolean,System.Action{`0})">
+            <summary>
+            Erstellt einen PropertyChangedBinder.
+            </summary>
+            <param name="enabled">Wenn <c>false</c>, werden alle Operationen übersprungen.</param>
+            <param name="onEntityChanged">Callback, der bei PropertyChanged aufgerufen wird.</param>
+        </member>
+        <member name="M:DataToolKit.Storage.Persistence.PropertyChangedBinder`1.AttachToDataStore(DataToolKit.Abstractions.DataStores.IDataStore{`0})">
+            <summary>
+            Bindet den Binder automatisch an einen DataStore.
+            </summary>
+            <param name="dataStore">Der zu überwachende DataStore.</param>
+            <returns>
+            Ein <see cref="T:System.IDisposable"/>, das die DataStore-Bindung beim Dispose beendet.
+            </returns>
+            <remarks>
+            <para>
+            Im DataStore-Modus werden automatisch:
+            </para>
+            <list type="bullet">
+            <item>Alle existierenden Items gebunden</item>
+            <item>Neue Items bei CollectionChanged.Add gebunden</item>
+            <item>Entfernte Items bei CollectionChanged.Remove entbunden</item>
+            <item>Alle Items bei CollectionChanged.Reset neu gebunden</item>
+            </list>
+            <para>
+            <b>Achtung:</b> Dispose des zurückgegebenen IDisposable beendet nur die DataStore-Bindung,
+            nicht den Binder selbst. Bereits gebundene Items bleiben gebunden bis <see cref="M:DataToolKit.Storage.Persistence.PropertyChangedBinder`1.Dispose"/> 
+            des Binders aufgerufen wird.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.Persistence.PropertyChangedBinder`1.Attach(`0)">
+            <summary>
+            Idempotentes Binden: Event-Handler wird vor dem Anfügen sicherheitshalber entfernt
+            und danach genau einmal angefügt. Dadurch sind Doppelbindungen ausgeschlossen,
+            selbst wenn Attach mehrfach auf derselben Instanz aufgerufen wird.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.Persistence.PropertyChangedBinder`1.DataStoreSubscription">
+            <summary>
+            Subscription für DataStore-Bindung.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.Persistence.PropertyChangedBinder`1.EmptyDisposable">
+            <summary>
+            Leeres Disposable für den Fall, dass _enabled = false.
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.Extensions.DataStoreSyncExtensions">
+            <summary>
+            Extension-Methoden für die Synchronisation von DataStores.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.Extensions.DataStoreSyncExtensions.SyncWith``1(DataToolKit.Abstractions.DataStores.IDataStore{``0},DataToolKit.Abstractions.DataStores.IDataStore{``0},System.Collections.Generic.IEqualityComparer{``0})">
+            <summary>
+            Synchronisiert einen Target-DataStore mit einem Source-DataStore.
+            </summary>
+            <typeparam name="T">Elementtyp.</typeparam>
+            <param name="target">Ziel-DataStore, der synchronisiert werden soll.</param>
+            <param name="source">Quell-DataStore, dessen Änderungen überwacht werden.</param>
+            <param name="comparer">
+            Optionaler Comparer zur Identifikation von Elementen. 
+            Default: <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/>
+            </param>
+            <returns>
+            Ein <see cref="T:System.IDisposable"/>, das die Synchronisation beim Dispose beendet.
+            </returns>
+            <remarks>
+            <para>
+            <b>Funktionsweise:</b>
+            </para>
+            <list type="bullet">
+            <item>Initiale Synchronisation: Alle Items aus Source werden zu Target hinzugefügt</item>
+            <item>Laufende Synchronisation: CollectionChanged-Events werden überwacht</item>
+            <item>Bei Add in Source ? Add in Target</item>
+            <item>Bei Remove in Source ? Remove in Target</item>
+            <item>Bei Reset in Source ? Clear + AddRange in Target</item>
+            </list>
+            <para>
+            <b>Identität:</b> Elemente werden mittels <paramref name="comparer"/> identifiziert.
+            Bei <c>null</c> wird <see cref="P:System.Collections.Generic.EqualityComparer`1.Default"/> verwendet.
+            </para>
+            <para>
+            <b>Verwendung:</b>
+            </para>
+            <code>
+            var subscription = targetStore.SyncWith(sourceStore);
+            
+            // Änderungen in sourceStore werden automatisch zu targetStore übertragen
+            sourceStore.Add(item);  // ? targetStore.Add(item)
+            
+            // Synchronisation beenden
+            subscription.Dispose();
+            </code>
+            </remarks>
+        </member>
+        <member name="T:DataToolKit.Storage.Extensions.DataStoreSync`1">
+            <summary>
+            Interne Implementierung der DataStore-Synchronisation.
+            </summary>
+            <remarks>
+            <para>
+            Überwacht CollectionChanged-Events der Source und überträgt Änderungen zum Target.
+            </para>
+            <para>
+            <b>Achtung:</b> Bei Replace-Operations werden alte Items entfernt und neue hinzugefügt.
+            Bei Reset wird das Target komplett geleert und neu befüllt.
+            </para>
+            </remarks>
+        </member>
+        <member name="T:DataToolKit.Storage.Repositories.IRepositoryFactory">
+            <summary>
+            Vereinfachte Factory zum Auflösen von Repositories aus dem DI-Container.
+            Die eigentlichen Repository-Instanzen sind als Singletons im Container registriert.
+            </summary>
+            <remarks>
+            Diese Factory dient als Alternative zur direkten DI-Injection, wenn:
+            - Der Repository-Typ erst zur Laufzeit bekannt ist
+            - Dynamische Auflösung basierend auf Konfiguration erforderlich ist
+            
+            Für statische Szenarien ist die direkte Injection von <see cref="T:DataToolKit.Abstractions.Repositories.IRepositoryBase`1"/> 
+            oder <see cref="T:DataToolKit.Abstractions.Repositories.IRepository`1"/> zu bevorzugen.
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.IRepositoryFactory.GetJsonRepository``1">
+            <summary>
+            Liefert das über DI registrierte JSON-Repository für <typeparamref name="T"/>.
+            </summary>
+            <typeparam name="T">Der Entitätstyp.</typeparam>
+            <returns>Das registrierte JSON-Repository.</returns>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn kein JSON-Repository für <typeparamref name="T"/> registriert wurde.
+            </exception>
+            <example>
+            <code>
+            var factory = serviceProvider.GetRequiredService&lt;IRepositoryFactory&gt;();
+            var customerRepo = factory.GetJsonRepository&lt;Customer&gt;();
+            </code>
+            </example>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.IRepositoryFactory.GetLiteDbRepository``1">
+            <summary>
+            Liefert das über DI registrierte LiteDB-Repository für <typeparamref name="T"/>.
+            </summary>
+            <typeparam name="T">Der Entitätstyp.</typeparam>
+            <returns>Das registrierte LiteDB-Repository.</returns>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn kein LiteDB-Repository für <typeparamref name="T"/> registriert wurde.
+            </exception>
+            <example>
+            <code>
+            var factory = serviceProvider.GetRequiredService&lt;IRepositoryFactory&gt;();
+            var orderRepo = factory.GetLiteDbRepository&lt;Order&gt;();
+            orderRepo.Update(order); // Update/Delete verfügbar
+            </code>
+            </example>
+        </member>
+        <member name="T:DataToolKit.Storage.Repositories.JsonRepository`1">
+            <summary>
+            JSON-basiertes Repository mit atomarer Persistierung.
+            Jede Änderung an der Collection wird vollständig und atomar in eine JSON-Datei geschrieben.
+            Storage-Optionen werden über <see cref="T:DataToolKit.Abstractions.Repositories.IStorageOptions`1"/> aus DI injiziert.
+            </summary>
+            <typeparam name="T">Der Entitätstyp, den dieses Repository verwaltet.</typeparam>
+            <remarks>
+            <para>
+            <b>Atomarer Write-Mechanismus:</b>
+            </para>
+            <list type="number">
+            <item>Schreibe Daten in temporäre Datei (<c>.tmp</c>)</item>
+            <item>Flush alle Puffer zur Festplatte</item>
+            <item>Ersetze Zieldatei atomar via <see cref="M:System.IO.File.Replace(System.String,System.String,System.String)"/> (mit Backup als <c>.bak</c>)</item>
+            </list>
+            <para>
+            <b>Thread-Safety:</b> Alle Operationen sind durch einen internen Lock geschützt.
+            Konkurrierender Zugriff ist sicher.
+            </para>
+            <para>
+            <b>Backup:</b> Bei jedem Schreibvorgang wird die vorherige Datei als <c>.bak</c> gesichert.
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.JsonRepository`1.#ctor(DataToolKit.Abstractions.Repositories.IStorageOptions{`0},System.Text.Json.JsonSerializerOptions)">
+            <summary>
+            Erstellt ein JSON-Repository mit injizierten Storage-Optionen.
+            </summary>
+            <param name="options">
+            Die für <typeparamref name="T"/> registrierten Storage-Optionen (aus DI).
+            Definiert den Speicherpfad (<see cref="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.FullPath"/>).
+            </param>
+            <param name="jsonOptions">
+            Optionale JSON-Serialisierungs-Optionen. Standard: <c>WriteIndented = true</c>.
+            </param>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="options"/> <c>null</c> ist.
+            </exception>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.JsonRepository`1.Load">
+            <summary>
+            Lädt die vollständige Collection aus der JSON-Datei.
+            </summary>
+            <returns>
+            Eine schreibgeschützte Liste aller Entitäten. Wenn die Datei nicht existiert, wird eine leere Liste zurückgegeben.
+            </returns>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn der Dateipfad ungültig ist (<see cref="P:DataToolKit.Abstractions.Repositories.AbstractRepositoryBase`1.FilePath"/> ist <c>null</c>).
+            </exception>
+            <exception cref="T:System.Text.Json.JsonException">
+            Wenn die JSON-Datei beschädigt oder ungültig ist.
+            </exception>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.JsonRepository`1.Write(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Schreibt die vollständige Collection atomar in die JSON-Datei.
+            Ersetzt alle bestehenden Daten und erstellt ein Backup der vorherigen Datei.
+            </summary>
+            <param name="items">Die zu persistierende Collection von Entitäten.</param>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="items"/> <c>null</c> ist.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            Wenn die Collection <c>null</c>-Elemente enthält.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn der Dateipfad ungültig ist oder das Zielverzeichnis nicht ermittelt werden kann.
+            </exception>
+            <exception cref="T:System.IO.IOException">
+            Wenn ein Dateisystem-Fehler beim Schreiben auftritt.
+            </exception>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.JsonRepository`1.Clear">
+            <summary>
+            Leert das Repository vollständig (schreibt eine leere Liste).
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.Repositories.JsonStorageOptions`1">
+            <summary>
+            Konkrete Speicheroptionen für JSON-Dateien.
+            Legt ausschließlich die Dateiendung ".json" fest;
+            sämtliche Pfadregeln stammen aus <see cref="T:DataToolKit.Abstractions.Repositories.AbstractStorageOptions`1"/>.
+            Wird als Singleton IStorageOptions&lt;T&gt; im DI-Container registriert.
+            </summary>
+        </member>
+        <member name="P:DataToolKit.Storage.Repositories.JsonStorageOptions`1.FileExtension">
+            <summary>
+            Dateiendung für JSON-Dateien.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.JsonStorageOptions`1.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            Erstellt JSON-Storage-Optionen für den Typ <typeparamref name="T"/>.
+            </summary>
+            <param name="appSubFolder">Pflichtfeld: Anwendungs-Unterordner unterhalb von rootFolder.</param>
+            <param name="fileNameBase">Pflichtfeld: Basisname der Datei (ohne Erweiterung).</param>
+            <param name="subFolder">Optional: weiterer Unterordner innerhalb von <paramref name="appSubFolder"/>.</param>
+            <param name="rootFolder">
+            Optional: Root-Verzeichnis. 
+            Wenn null, wird "Eigene Dokumente" (MyDocuments) verwendet.
+            Für Tests kann hier z.B. eine Sandbox übergeben werden.
+            </param>
+        </member>
+        <member name="T:DataToolKit.Storage.Repositories.LiteDbRepository`1">
+            <summary>
+            Repository-Implementierung für LiteDB (v5) mit Delta-Synchronisierung.
+            Unterstützt Volloperationen (<see cref="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Load"/>, <see cref="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Write(System.Collections.Generic.IEnumerable{`0})"/>, <see cref="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Clear"/>)
+            und Einzeloperationen (<see cref="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Update(`0)"/>, <see cref="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Delete(`0)"/>).
+            Storage-Optionen werden über <see cref="T:DataToolKit.Abstractions.Repositories.IStorageOptions`1"/> aus DI injiziert.
+            </summary>
+            <typeparam name="T">
+            Der Entitätstyp, der von <see cref="T:DataToolKit.Abstractions.Repositories.EntityBase"/> erben muss (für automatische ID-Verwaltung).
+            </typeparam>
+            <remarks>
+            <para>
+            <b>Delta-Write:</b> Die <see cref="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Write(System.Collections.Generic.IEnumerable{`0})"/>-Methode verwendet <see cref="T:DataToolKit.Abstractions.Repositories.RepositoryDiffBuilder"/>
+            zur Erkennung von Änderungen. Nur neue, geänderte oder zu löschende Entitäten werden verarbeitet.
+            </para>
+            <para>
+            <b>Transaktionen:</b> Alle Schreiboperationen (Insert/Update/Delete) werden innerhalb einer
+            LiteDB-Transaktion ausgeführt. Bei Fehlern erfolgt automatisch ein Rollback.
+            </para>
+            <para>
+            <b>Collection-Name:</b> Die LiteDB-Collection wird automatisch nach dem Typ benannt:
+            <c>typeof(T).Name</c>. Beispiel: <c>Customer</c> → Collection "Customer".
+            </para>
+            <para>
+            <b>Automatische ID-Vergabe:</b> Neue Entitäten (mit <c>Id = 0</c>) erhalten automatisch
+            eine fortlaufende ID von LiteDB beim ersten Insert.
+            </para>
+            <para>
+            <b>EqualityComparer:</b> Der injizierte <see cref="T:System.Collections.Generic.IEqualityComparer`1"/> wird für die
+            Delta-Erkennung verwendet (Vergleich von bestehenden und neuen Entitäten).
+            </para>
+            </remarks>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.#ctor(DataToolKit.Abstractions.Repositories.IStorageOptions{`0},System.Collections.Generic.IEqualityComparer{`0})">
+            <summary>
+            Erstellt ein LiteDB-Repository mit injizierten Storage-Optionen und EqualityComparer.
+            </summary>
+            <param name="options">
+            Die für <typeparamref name="T"/> registrierten Storage-Optionen (aus DI).
+            Definiert den Datenbankpfad (<see cref="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.FullPath"/>).
+            </param>
+            <param name="comparer">
+            Comparer für Delta-Erkennung (aus DI). Typischerweise <c>FallbackEqualsComparer&lt;T&gt;</c>
+            aus Common.Bootstrap.Defaults oder eine typspezifische Implementierung.
+            </param>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="options"/> oder <paramref name="comparer"/> <c>null</c> ist.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            Wenn <see cref="P:DataToolKit.Abstractions.Repositories.IStorageOptions`1.FullPath"/> leer oder ungültig ist.
+            </exception>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Load">
+            <summary>
+            Lädt alle Elemente aus der LiteDB-Collection.
+            </summary>
+            <returns>
+            Eine schreibgeschützte Liste aller Entitäten in der Collection.
+            </returns>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Write(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Führt Delta-Synchronisierung durch: Vergleicht bestehende mit übergebenen Entitäten
+            und führt nur notwendige Insert/Update/Delete-Operationen aus (innerhalb einer Transaktion).
+            </summary>
+            <param name="items">Die neue Ziel-Collection.</param>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="items"/> <c>null</c> ist.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            Wenn die Collection <c>null</c>-Elemente enthält.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn die Transaktion nicht gestartet werden kann oder ein Fehler während
+            Insert/Update/Delete auftritt (Rollback erfolgt automatisch).
+            </exception>
+            <remarks>
+            <para>
+            <b>Delta-Logik:</b>
+            </para>
+            <list type="bullet">
+            <item><b>Update:</b> Entitäten, die in beiden Collections existieren, aber unterschiedlich sind (laut Comparer)</item>
+            <item><b>Delete:</b> Entitäten, die nur in der Datenbank existieren</item>
+            <item><b>Insert:</b> Entitäten, die nur in der neuen Collection existieren</item>
+            </list>
+            </remarks>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Clear" -->
+        <member name="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Update(`0)">
+            <summary>
+            Aktualisiert eine vorhandene Entität in der Datenbank.
+            </summary>
+            <param name="item">Die zu aktualisierende Entität (Identifikation via <c>Id</c>).</param>
+            <returns>Immer <c>1</c> bei Erfolg.</returns>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="item"/> <c>null</c> ist.
+            </exception>
+            <exception cref="T:System.ArgumentException">
+            Wenn <c>item.Id &lt;= 0</c> (ungültige ID).
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn die Entität nicht in der Datenbank gefunden wurde.
+            </exception>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Delete(`0)">
+            <summary>
+            Löscht eine vorhandene Entität aus der Datenbank.
+            </summary>
+            <param name="item">Die zu löschende Entität (Identifikation via <c>Id</c>).</param>
+            <returns><c>1</c> bei Erfolg, <c>0</c> wenn <c>item.Id &lt;= 0</c>.</returns>
+            <exception cref="T:System.ArgumentNullException">
+            Wenn <paramref name="item"/> <c>null</c> ist.
+            </exception>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn die Entität nicht in der Datenbank gefunden wurde (bei <c>Id &gt; 0</c>).
+            </exception>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.LiteDbRepository`1.Dispose(System.Boolean)">
+            <summary>
+            Schließt die LiteDB-Datenbankverbindung und gibt Ressourcen frei.
+            </summary>
+            <param name="disposing">
+            <c>true</c>, wenn von <see cref="M:System.IDisposable.Dispose"/> aufgerufen; <c>false</c> bei Finalisierung.
+            </param>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:DataToolKit.Storage.Repositories.LiteDbStorageOptions`1" -->
+        <member name="P:DataToolKit.Storage.Repositories.LiteDbStorageOptions`1.FileExtension">
+            <summary>
+            Dateiendung für LiteDB-Dateien.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.LiteDbStorageOptions`1.#ctor(System.String,System.String,System.String,System.String)">
+            <summary>
+            Erstellt LiteDB-Storage-Optionen für den Typ <typeparamref name="T"/>.
+            </summary>
+            <param name="appSubFolder">Pflichtfeld: Anwendungs-Unterordner unterhalb von rootFolder.</param>
+            <param name="fileNameBase">Pflichtfeld: Basisname der Datei (ohne Erweiterung).</param>
+            <param name="subFolder">Optional: weiterer Unterordner innerhalb von <paramref name="appSubFolder"/>.</param>
+            <param name="rootFolder">
+            Optional: Root-Verzeichnis. 
+            Wenn null, wird "Eigene Dokumente" (MyDocuments) verwendet.
+            Für Tests kann hier z.B. eine Sandbox übergeben werden.
+            </param>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.LiteDbStorageOptions`1.GetConnectionString">
+            <summary>
+            Liefert einen schlanken Connection-String ohne "shared"-Zusatz.
+            Beispiel:
+              Filename=C:\Users\Name\Documents\MyApp\data.db
+            </summary>
+        </member>
+        <member name="T:DataToolKit.Storage.Repositories.RepositoryFactory">
+            <summary>
+            Factory, die Repositories aus dem DI-Container auflöst.
+            Die eigentlichen Repository-Instanzen sind als Singletons registriert.
+            </summary>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.RepositoryFactory.#ctor(System.IServiceProvider)">
+            <summary>
+            Erstellt eine neue <see cref="T:DataToolKit.Storage.Repositories.RepositoryFactory"/>.
+            </summary>
+            <param name="serviceProvider">Der DI-Container.</param>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.RepositoryFactory.GetJsonRepository``1">
+            <inheritdoc/>
+        </member>
+        <member name="M:DataToolKit.Storage.Repositories.RepositoryFactory.GetLiteDbRepository``1">
+            <inheritdoc/>
+        </member>
+    </members>
+</doc>

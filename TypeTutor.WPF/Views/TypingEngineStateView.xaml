@@ -1,0 +1,55 @@
+﻿<!-- src/TypeTutor.WPF/TypingEngineStateView.xaml -->
+<UserControl x:Class="TypeTutor.WPF.TypingEngineStateView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="28">
+    <Border Padding="6,2"
+            Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}"
+            CornerRadius="3">
+        <DockPanel LastChildFill="False">
+            <!-- Fortschrittsanzeige -->
+            <ProgressBar DockPanel.Dock="Right"
+                         Width="120" Height="16" Margin="8,0,0,0"
+                         Minimum="0" Maximum="100"
+                         Value="{Binding ProgressPercent, Mode=OneWay}" />
+
+            <!-- Restart Button -->
+            <Button DockPanel.Dock="Right" Margin="8,0,0,0" Padding="6,0"
+                    Content="Neustart" Command="{Binding CmdRestart}" />
+
+            <!-- Status-Texte -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{Binding Prefix, Mode=OneWay, StringFormat=Prefix: {0}}"
+                           Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding Errors, Mode=OneWay, StringFormat=Fehler: {0}}"
+                           Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding NextIndex, Mode=OneWay, StringFormat=Index: {0}}"
+                           Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding Expected, Mode=OneWay, StringFormat=Erwartet: {0}}"
+                           Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding LastInput, Mode=OneWay, StringFormat=Zuletzt: {0}}"
+                           Margin="0,0,12,0"/>
+                <TextBlock Text="{Binding IsComplete, Mode=OneWay, StringFormat=Fertig: {0}}"/>
+
+                <!-- Completion Message -->
+                <TextBlock Margin="12,0,0,0" Text="{Binding CompletionMessage, Mode=OneWay}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="Black" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CompletionSuccess}" Value="True">
+                                    <Setter Property="Foreground" Value="Green" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding CompletionSuccess}" Value="False">
+                                    <Setter Property="Foreground" Value="Red" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </DockPanel>
+    </Border>
+</UserControl>

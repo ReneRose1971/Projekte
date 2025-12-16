@@ -1,0 +1,17 @@
+﻿<!-- src/TypeTutor.WPF/LessonMenuView.xaml -->
+<UserControl x:Class="TypeTutor.WPF.LessonMenuView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Menu>
+        <MenuItem Header="_Daten und Einstellungen">
+            <MenuItem Header="Lessons _laden"
+                      Command="{Binding CmdOpenLessonBrowser}" />
+            <Separator/>
+            <MenuItem Header="_LessonEditor öffnen"
+                      Command="{Binding CmdOpenLessonEditor}" />
+            <Separator/>
+            <MenuItem Header="_Modulguide Editor öffnen"
+                      Command="{Binding CmdOpenModuleGuideEditor}" />
+        </MenuItem>
+    </Menu>
+</UserControl>

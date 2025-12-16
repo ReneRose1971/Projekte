@@ -1,0 +1,78 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- Build/Framework -->
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>DataToolKit</RootNamespace>
+
+		<!-- Doku & deterministischer Build -->
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<DocumentationFile>$(OutputPath)$(AssemblyName).xml</DocumentationFile>
+		<DebugType>portable</DebugType>
+		<Deterministic>true</Deterministic>
+
+		<!-- Symbolpaket -->
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+		<!-- SourceLink -->
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+
+		<!-- FIX: Win32-Ressourcen & Manifest explizit deaktivieren (verhindert CS7065) -->
+		<GenerateWin32Resources>false</GenerateWin32Resources>
+		<GenerateManifest>false</GenerateManifest>
+		<GenerateNativeVersionInfo>false</GenerateNativeVersionInfo>
+
+		<!-- Assembly-Versionen -->
+		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<FileVersion>1.0.8.0</FileVersion>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <Compile Remove="Abstractions\Repositories\RepositoryBaseAsyncExtensions.cs" />
+	</ItemGroup>
+
+	<!-- Abhängigkeiten -->
+	<ItemGroup>
+		<PackageReference Include="Fody" Version="6.9.3">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
+		<PackageReference Include="LiteDB" Version="5.0.21" />
+		<PackageReference Include="System.Text.Json" Version="10.0.1" />
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Common.BootStrap\Common.BootStrap.csproj" />
+	</ItemGroup>
+
+	<!-- SourceLink-Absicherung beim Build -->
+	<Target Name="EnsureAssemblyInfo" BeforeTargets="CoreCompile">
+		<PropertyGroup>
+			<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		</PropertyGroup>
+	</Target>
+
+	<!-- Post-Build: DLLs in LibCache kopieren -->
+	<Target Name="CopyToLibCache" AfterTargets="Build">
+		<PropertyGroup>
+			<LibCacheDir>$(SolutionDir)LibCache\$(Configuration)</LibCacheDir>
+		</PropertyGroup>
+		
+		<!-- LibCache-Verzeichnis erstellen, falls nicht vorhanden -->
+		<MakeDir Directories="$(LibCacheDir)" Condition="!Exists('$(LibCacheDir)')" />
+		
+		<!-- Nur DLL kopieren (keine PDB-Dateien) -->
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(LibCacheDir)" SkipUnchangedFiles="true" />
+		
+		<!-- Optional: XML-Dokumentation kopieren -->
+		<Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFolder="$(LibCacheDir)" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)$(TargetName).xml')" />
+		
+		<Message Text="$(AssemblyName).dll kopiert nach: $(LibCacheDir)" Importance="high" />
+	</Target>
+</Project>

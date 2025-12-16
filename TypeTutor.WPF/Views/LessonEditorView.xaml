@@ -1,0 +1,63 @@
+﻿<!-- src/TypeTutor.WPF/LessonEditorView.xaml -->
+<UserControl x:Class="TypeTutor.WPF.LessonEditorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:TypeTutor.WPF">
+
+    <Grid>
+        <!-- Zwei Spalten: links Liste + Buttons, rechts Editor -->
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="3*"/>
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Linke Seite: Liste und Buttons darunter -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/> <!-- List -->
+                <RowDefinition Height="Auto"/> <!-- Buttons -->
+            </Grid.RowDefinitions>
+
+            <local:LessonListView Grid.Row="0" DataContext="{Binding ListVM}" />
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,8,0,0">
+                <Button Content="Erstellen" Command="{Binding CmdCreate}" Margin="0,0,8,0" Width="96" Height="28" Foreground="White" />
+                <Button Content="Löschen" Command="{Binding CmdDelete}" Margin="0,0,8,0" Width="96" Height="28" Foreground="White" />
+                <Button Content="Importieren" Command="{Binding CmdImport}" Width="120" Height="28" Foreground="White" />
+                <Button Content="Modulbeschreibungen" Width="160" Height="28" Margin="8,0,0,0" Click="OnOpenModuleGuides" />
+            </StackPanel>
+        </Grid>
+
+        <!-- Rechte Seite: Editorfelder -->
+        <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="12,0,0,0">
+
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Titel"/>
+                <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Beschreibung"/>
+                <TextBox Text="{Binding Description, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Schwierigkeit"/>
+                <TextBox Text="{Binding Difficulty, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Tags (kommagetrennt)"/>
+                <TextBox Text="{Binding Tags, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Modul"/>
+                <TextBox Text="{Binding ModuleId, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+
+                <TextBlock Style="{StaticResource LabelStyle}" Text="Text"/>
+                <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" 
+                         AcceptsReturn="True"
+                         VerticalScrollBarVisibility="Auto"
+                         Height="220"/>
+            </StackPanel>
+        </ScrollViewer>
+
+    </Grid>
+</UserControl>

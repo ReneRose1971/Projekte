@@ -1,0 +1,55 @@
+﻿<!-- src/TypeTutor.WPF/LessonListView.xaml -->
+<UserControl x:Class="TypeTutor.WPF.LessonListView"
+             x:Name="Root"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <UserControl.Resources>
+        <CollectionViewSource x:Key="LessonsView" Source="{Binding Items}" />
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ListView x:Name="InnerList" Grid.Row="0" ItemsSource="{Binding Source={StaticResource LessonsView}}" SelectedItem="{Binding SelectedItem, Mode=TwoWay}"
+                 MouseDoubleClick="OnItemDoubleClick"
+                 SelectionMode="Extended" SelectionChanged="OnSelectionChanged">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn>
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Titel" Click="OnHeaderClick" Tag="Meta.Title" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.DisplayMemberBinding>
+                            <Binding Path="Meta.Title" />
+                        </GridViewColumn.DisplayMemberBinding>
+                    </GridViewColumn>
+
+                    <GridViewColumn>
+                        <GridViewColumn.Header>
+                            <GridViewColumnHeader Content="Modul" Click="OnHeaderClick" Tag="Meta.ModuleId" />
+                        </GridViewColumn.Header>
+                        <GridViewColumn.DisplayMemberBinding>
+                            <Binding Path="Meta.ModuleId" />
+                        </GridViewColumn.DisplayMemberBinding>
+                    </GridViewColumn>
+
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <StatusBar Grid.Row="1">
+            <StatusBarItem>
+                <TextBlock Text="Filter: Modul" Margin="4,0" VerticalAlignment="Center"/>
+            </StatusBarItem>
+            <StatusBarItem>
+                <ComboBox Width="200" ItemsSource="{Binding Modules}" SelectedItem="{Binding SelectedModuleFilter, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+            </StatusBarItem>
+            <StatusBarItem>
+                <Button Content="x" Width="24" Height="24" ToolTip="Filter zurücksetzen" Click="OnClearFilter"/>
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</UserControl>

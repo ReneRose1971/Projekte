@@ -1,0 +1,59 @@
+﻿<!-- src/TypeTutor.WPF/Windows/MainWindow.xaml -->
+<Window x:Class="TypeTutor.WPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:TypeTutor.WPF"
+        xmlns:vk="clr-namespace:TTVisualKeyboard.Views;assembly=TTVisualKeyboard"
+        Title="TypeTutor"
+        Width="1080" Height="720"
+        WindowStartupLocation="CenterScreen"
+        PreviewKeyDown="OnPreviewKeyDown"
+        PreviewKeyUp="OnPreviewKeyUp"
+        TextInput="OnTextInput"
+        WindowStyle="None"
+        ResizeMode="CanResize">
+
+    <DockPanel LastChildFill="True">
+
+        <!-- Custom Title Bar -->
+        <Border Background="{StaticResource WindowTitleBarBrush}" DockPanel.Dock="Top" Height="36" MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+            <Grid>
+                <TextBlock Text="TypeTutor" Foreground="White" VerticalAlignment="Center" Margin="12,0,0,0" FontWeight="Bold"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,12,0">
+                    <Button Content="_" Width="28" Click="OnMinimize" />
+                    <Button Content="[]" Width="28" Click="OnToggleMaximize" />
+                    <Button Content="X" Width="28" Click="OnClose" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Menüleiste -->
+        <local:LessonMenuView DockPanel.Dock="Top"
+                              DataContext="{Binding LessonMenuVM}" />
+
+        <!-- Hauptbereich -->
+        <Grid Margin="8">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- Zentrales Panel für Tastatur -->
+                <RowDefinition Height="*"/>
+                <!-- Statusbar -->
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- Ziel- & Eingabetext -->
+            <local:TypingTextView Grid.Row="0"
+                                  DataContext="{Binding TypingTextVM}" />
+
+            <!-- Tastatur: integriere wiederverwendbares Keyboard-Control -->
+            <vk:Keyboard Grid.Row="1" DataContext="{Binding VisualKeyboardVM}" />
+
+            <!-- Statusbar -->
+            <StatusBar Grid.Row="2" Margin="0,8,0,0">
+                <StatusBarItem>
+                    <local:TypingEngineStateView DataContext="{Binding EngineStateVM}" />
+                </StatusBarItem>
+            </StatusBar>
+        </Grid>
+    </DockPanel>
+</Window>

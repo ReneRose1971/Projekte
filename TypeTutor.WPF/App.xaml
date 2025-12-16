@@ -1,0 +1,13 @@
+﻿<!-- NUR SO lassen; KEIN StartupUri -->
+<Application x:Class="TypeTutor.WPF.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/TypeTutor.WPF;component/Themes/Theme.xaml" />
+                <ResourceDictionary Source="/TTVisualKeyboard;component/Themes/KeyboardTheme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>
