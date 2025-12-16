@@ -1,0 +1,26 @@
+[
+  {
+    "Title": "Home Row Basic",
+    "Content": "asdf jklö\nasdf jklö\nasdf jklö",
+    "Description": "Basic home row practice for German keyboard layout",
+    "Difficulty": 1
+  },
+  {
+    "Title": "Upper Row",
+    "Content": "qwer tzui\nqwer tzui\nqwer tzui",
+    "Description": "Upper row practice",
+    "Difficulty": 2
+  },
+  {
+    "Title": "Lower Row",
+    "Content": "yxcv bnm\nyxcv bnm\nyxcv bnm",
+    "Description": "Lower row practice",
+    "Difficulty": 2
+  },
+  {
+    "Title": "All Letters",
+    "Content": "the quick brown fox jumps over the lazy dog",
+    "Description": "Practice all letters",
+    "Difficulty": 3
+  }
+]

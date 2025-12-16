@@ -12,6 +12,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DataToolKit\DataToolKit.csproj" />
+    <ProjectReference Include="..\Common.BootStrap\Common.BootStrap.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Services\" />
   </ItemGroup>
 

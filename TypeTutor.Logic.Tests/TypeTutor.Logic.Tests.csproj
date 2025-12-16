@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="FluentAssertions" Version="8.8.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TypeTutor.Logic\TypeTutor.Logic.csproj" />
+    <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+  </ItemGroup>
+
+  <!-- Post-Build: DLLs in LibCache kopieren -->
+  <Target Name="CopyToLibCache" AfterTargets="Build">
+    <PropertyGroup>
+      <LibCacheDir>$(SolutionDir)LibCache\$(Configuration)</LibCacheDir>
+    </PropertyGroup>
+    
+    <!-- LibCache-Verzeichnis erstellen, falls nicht vorhanden -->
+    <MakeDir Directories="$(LibCacheDir)" Condition="!Exists('$(LibCacheDir)')" />
+    
+    <!-- Nur DLL kopieren (keine PDB-Dateien) -->
+    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(LibCacheDir)" SkipUnchangedFiles="true" />
+    
+    <!-- Optional: XML-Dokumentation kopieren -->
+    <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFolder="$(LibCacheDir)" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)$(TargetName).xml')" />
+    
+    <Message Text="$(AssemblyName).dll kopiert nach: $(LibCacheDir)" Importance="high" />
+  </Target>
+
+</Project>

@@ -7,6 +7,7 @@
   </Folder>
   <Folder Name="/Apps/TypeTutor/">
     <Project Path="TTVisualKeyboard/TTVisualKeyboard.csproj" />
+    <Project Path="TypeTutor.Logic.Tests/TypeTutor.Logic.Tests.csproj" />
     <Project Path="TypeTutor.Logic/TypeTutor.Logic.csproj" />
     <Project Path="TypeTutor.WPF/TypeTutor.WPF.csproj" />
   </Folder>
