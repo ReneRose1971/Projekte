@@ -1,11 +1,13 @@
+using Common.Bootstrap;
 using Microsoft.Extensions.DependencyInjection;
 using TypeTutor.Logic.DI;
+using DataToolKit.Abstractions.DI;
 
 namespace TypeTutor.Logic.Tests.Helpers;
 
 /// <summary>
 /// Fixture für den DI-Container, um Services für Tests bereitzustellen.
-/// Registriert alle TypeTutor.Logic-Services via TypeTutorServiceModule.
+/// Registriert alle TypeTutor.Logic-Services via AddModulesFromAssemblies.
 /// </summary>
 public sealed class ServiceProviderFixture : IDisposable
 {
@@ -15,8 +17,11 @@ public sealed class ServiceProviderFixture : IDisposable
     {
         var services = new ServiceCollection();
         
-        // Registriere das TypeTutor Service-Modul
-        new TypeTutorServiceModule().Register(services);
+        // Registriere alle Module aus den relevanten Assemblies
+        // Die Reihenfolge ist wichtig: DataToolKit zuerst, dann TypeTutor
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,  // DataToolKit-Infrastruktur
+            typeof(TypeTutorServiceModule).Assembly);   // TypeTutor-Services
         
         _serviceProvider = services.BuildServiceProvider();
     }

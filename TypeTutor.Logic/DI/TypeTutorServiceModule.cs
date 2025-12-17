@@ -1,7 +1,6 @@
 using Common.Bootstrap;
 using DataToolKit.Abstractions.DI;
 using DataToolKit.Abstractions.Repositories;
-using DataToolKit.Storage.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using TypeTutor.Logic.Data;
@@ -15,15 +14,21 @@ namespace TypeTutor.Logic.DI;
 /// Verwendung:
 /// <code>
 /// var services = new ServiceCollection();
-/// services.AddModulesFromAssemblies(typeof(TypeTutorServiceModule).Assembly);
-/// </code>
-/// 
-/// Oder manuell:
-/// <code>
-/// var services = new ServiceCollection();
-/// new TypeTutorServiceModule().Register(services);
+/// services.AddModulesFromAssemblies(
+///     typeof(DataToolKitServiceModule).Assembly,  // DataToolKit-Infrastruktur
+///     typeof(TypeTutorServiceModule).Assembly);   // TypeTutor-Services
 /// </code>
 /// </summary>
+/// <remarks>
+/// <para>
+/// <b>Abhängigkeit:</b> Dieses Modul setzt voraus, dass <see cref="DataToolKitServiceModule"/>
+/// bereits registriert wurde, um die DataToolKit-Infrastruktur (IRepositoryFactory, IDataStoreProvider, etc.)
+/// verfügbar zu machen.
+/// </para>
+/// <para>
+/// Bei Verwendung von <c>AddModulesFromAssemblies</c> mit beiden Assemblies wird dies automatisch sichergestellt.
+/// </para>
+/// </remarks>
 public sealed class TypeTutorServiceModule : IServiceModule
 {
     /// <summary>

@@ -6,23 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- Post-Build: DLLs in LibCache kopieren -->
-  <Target Name="CopyToLibCache" AfterTargets="Build">
-    <PropertyGroup>
-      <LibCacheDir>$(SolutionDir)LibCache\$(Configuration)</LibCacheDir>
-    </PropertyGroup>
-    
-    <!-- LibCache-Verzeichnis erstellen, falls nicht vorhanden -->
-    <MakeDir Directories="$(LibCacheDir)" Condition="!Exists('$(LibCacheDir)')" />
-    
-    <!-- Nur DLL kopieren (keine PDB-Dateien) -->
-    <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(LibCacheDir)" SkipUnchangedFiles="true" />
-    
-    <!-- Optional: XML-Dokumentation kopieren -->
-    <Copy SourceFiles="$(TargetDir)$(TargetName).xml" DestinationFolder="$(LibCacheDir)" SkipUnchangedFiles="true" Condition="Exists('$(TargetDir)$(TargetName).xml')" />
-    
-    <Message Text="$(AssemblyName).dll kopiert nach: $(LibCacheDir)" Importance="high" />
-  </Target>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
   </ItemGroup>

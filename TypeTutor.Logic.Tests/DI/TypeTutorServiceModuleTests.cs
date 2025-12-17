@@ -1,3 +1,4 @@
+using Common.Bootstrap;
 using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Abstractions.Repositories;
 using DataToolKit.Storage.Repositories;
@@ -49,7 +50,7 @@ public sealed class TypeTutorServiceModuleTests : IDisposable
     public void Register_ShouldRegisterLessonDataRepository()
     {
         // Act
-        var repository = _fixture.ServiceProvider.GetService<IRepository<LessonData>>();
+        var repository = _fixture.ServiceProvider.GetService<IRepositoryBase<LessonData>>();
 
         // Assert
         repository.Should().NotBeNull();
@@ -59,7 +60,7 @@ public sealed class TypeTutorServiceModuleTests : IDisposable
     public void Register_ShouldRegisterLessonGuideDataRepository()
     {
         // Act
-        var repository = _fixture.ServiceProvider.GetService<IRepository<LessonGuideData>>();
+        var repository = _fixture.ServiceProvider.GetService<IRepositoryBase<LessonGuideData>>();
 
         // Assert
         repository.Should().NotBeNull();
@@ -123,16 +124,20 @@ public sealed class TypeTutorServiceModuleTests : IDisposable
     {
         // Arrange
         var services = new ServiceCollection();
-        var module = new TypeTutorServiceModule();
 
-        // Act
-        module.Register(services);
+        // Act - Verwende AddModulesFromAssemblies statt manuelle Instanziierung
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKit.Abstractions.DI.DataToolKitServiceModule).Assembly,
+            typeof(TypeTutorServiceModule).Assembly);
+        
         var provider = services.BuildServiceProvider();
 
         // Assert
         provider.GetService<IEqualityComparer<LessonData>>().Should().NotBeNull();
         provider.GetService<IEqualityComparer<LessonGuideData>>().Should().NotBeNull();
         provider.GetService<DataStoreWrapper>().Should().NotBeNull();
+        provider.GetService<IDataStoreProvider>().Should().NotBeNull();
+        provider.GetService<IRepositoryFactory>().Should().NotBeNull();
     }
 
     public void Dispose()

@@ -85,10 +85,271 @@
 
 ### Coding Conventions
 
-#### Dependency Injection
-- Verwende `IServiceModule` für Service-Registrierungen
+#### Dependency Injection und Service Modules
+
+**?? KRITISCHE REGEL: Keine Verschachtelung von ServiceModules!**
+
+Ein `IServiceModule` darf **NIEMALS** innerhalb eines anderen `IServiceModule` instanziiert und ausgeführt werden!
+
+##### ? FALSCH - Verschachtelte Module
+
+```csharp
+// ? NIEMALS SO MACHEN!
+public class MyAppServiceModule : IServiceModule
+{
+    public void Register(IServiceCollection services)
+    {
+        // ? VERBOTEN: Verschachtelung von Modulen
+        new DataToolKitServiceModule().Register(services);
+        new OtherModule().Register(services);
+        
+        // Eigene Registrierungen...
+        services.AddSingleton<IMyService, MyService>();
+    }
+}
+```
+
+**Warum ist das verboten?**
+- Verstößt gegen das Single Responsibility Principle
+- Erschwert die Wartbarkeit erheblich
+- Macht Abhängigkeiten zwischen Modulen unklar
+- Führt zu potentiellen Doppel-Registrierungen
+- Umgeht das zentrale Bootstrap-System
+- Macht die Reihenfolge der Registrierungen unkontrollierbar
+
+##### ? KORREKT - AddModulesFromAssemblies
+
+```csharp
+// ? In Program.cs, Startup oder Test-Fixtures
+var services = new ServiceCollection();
+
+// Automatische Registrierung aller Module aus mehreren Assemblies
+services.AddModulesFromAssemblies(
+    typeof(DataToolKitServiceModule).Assembly,
+    typeof(TypeTutorServiceModule).Assembly,
+    typeof(MyAppModule).Assembly);
+
+var provider = services.BuildServiceProvider();
+```
+
+**Reihenfolge der Assemblies ist wichtig:**
+1. **Infrastruktur-Module zuerst** (z.B. Common.Bootstrap, DataToolKit)
+2. **Domain-Module** (z.B. TypeTutor.Logic)
+3. **Application-Module** (z.B. WPF-ViewModels)
+
+##### ? KORREKT - ServiceModule-Struktur
+
+```csharp
+public sealed class MyAppServiceModule : IServiceModule
+{
+    public void Register(IServiceCollection services)
+    {
+        // ? Nur eigene Services registrieren
+        RegisterComparers(services);
+        RegisterRepositories(services);
+        RegisterServices(services);
+    }
+    
+    private static void RegisterComparers(IServiceCollection services)
+    {
+        services.AddSingleton<IEqualityComparer<MyEntity>>(
+            new MyEntityComparer());
+    }
+    
+    private static void RegisterRepositories(IServiceCollection services)
+    {
+        // ? Extension-Methoden aus anderen Bibliotheken verwenden
+        services.AddJsonRepository<MyEntity>("MyApp", "entities", "Data");
+    }
+    
+    private static void RegisterServices(IServiceCollection services)
+    {
+        services.AddSingleton<IMyService, MyService>();
+        services.AddTransient<IMyRepository, MyRepository>();
+    }
+}
+```
+
+##### ? KORREKT - Tests mit ServiceModules
+
+```csharp
+public class ServiceProviderFixture : IDisposable
+{
+    private readonly ServiceProvider _serviceProvider;
+
+    public ServiceProviderFixture()
+    {
+        var services = new ServiceCollection();
+        
+        // ? KORREKT: AddModulesFromAssemblies verwenden
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(MyAppServiceModule).Assembly);
+        
+        _serviceProvider = services.BuildServiceProvider();
+    }
+    
+    public T GetRequiredService<T>() where T : notnull
+        => _serviceProvider.GetRequiredService<T>();
+    
+    public void Dispose()
+    {
+        _serviceProvider.Dispose();
+    }
+}
+
+// Verwendung in Tests
+[Fact]
+public void Test_With_Correct_DI_Setup()
+{
+    // ? Fixture verwendet AddModulesFromAssemblies
+    var fixture = new ServiceProviderFixture();
+    var service = fixture.GetRequiredService<IMyService>();
+    
+    service.Should().NotBeNull();
+}
+```
+
+##### Dokumentation von Abhängigkeiten
+
+Wenn ein ServiceModule von anderen Modulen abhängt, dokumentiere dies im XML-Kommentar:
+
+```csharp
+/// <summary>
+/// Service-Modul für MyApp.
+/// </summary>
+/// <remarks>
+/// <para>
+/// <b>Abhängigkeiten:</b> Dieses Modul setzt voraus, dass 
+/// <see cref="DataToolKitServiceModule"/> bereits registriert wurde.
+/// </para>
+/// <para>
+/// Bei Verwendung von <c>AddModulesFromAssemblies</c> mit beiden Assemblies 
+/// wird dies automatisch sichergestellt.
+/// </para>
+/// </remarks>
+public sealed class MyAppServiceModule : IServiceModule
+{
+    // ...
+}
+```
+
+##### Häufige Fehler vermeiden
+
+```csharp
+// ? Manuelles Instanziieren in Tests
+[Fact]
+public void Wrong_Test_Setup()
+{
+    var services = new ServiceCollection();
+    new MyAppServiceModule().Register(services);  // ? Abhängigkeiten fehlen!
+    var provider = services.BuildServiceProvider();
+}
+
+// ? Korrekt: AddModulesFromAssemblies
+[Fact]
+public void Correct_Test_Setup()
+{
+    var services = new ServiceCollection();
+    services.AddModulesFromAssemblies(
+        typeof(DataToolKitServiceModule).Assembly,
+        typeof(MyAppServiceModule).Assembly);
+    var provider = services.BuildServiceProvider();
+}
+```
+
+#### Repository-Pattern (DataToolKit)
+
+##### JSON-Repositories
+```csharp
+// ? In einem ServiceModule
+services.AddJsonRepository<MyEntity>(
+    appSubFolder: "MyApp",
+    fileNameBase: "entities",
+    subFolder: "Data");
+
+// Resultat: IRepositoryBase<MyEntity> ist verfügbar
+// Datei: %USERPROFILE%\Documents\MyApp\Data\entities.json
+```
+
+##### LiteDB-Repositories
+```csharp
+// ? In einem ServiceModule
+services.AddLiteDbRepository<MyEntity>(
+    appSubFolder: "MyApp",
+    fileNameBase: "entities",
+    subFolder: "Databases");
+
+// Resultat: IRepositoryBase<MyEntity> UND IRepository<MyEntity> sind verfügbar
+// Datei: %USERPROFILE%\Documents\MyApp\Databases\entities.db
+```
+
+##### Unterschied zwischen IRepositoryBase und IRepository
+
+- **IRepositoryBase<T>**: Basis-Interface für alle Repositories (Load, Write, Clear)
+- **IRepository<T>**: Erweitert IRepositoryBase mit Update/Delete (nur LiteDB!)
+
+```csharp
+// ? JSON-Repository: Nur IRepositoryBase verfügbar
+public class MyService
+{
+    public MyService(IRepositoryBase<MyPoco> repository) { }
+}
+
+// ? LiteDB-Repository: Beide Interfaces verfügbar
+public class MyEntityService
+{
+    public MyEntityService(IRepository<MyEntity> repository) 
+    {
+        // repository.Update() und repository.Delete() verfügbar
+    }
+}
+```
+
+#### DataStore-Pattern
+
+##### DataStoreProvider verwenden
+```csharp
+public class MyService
+{
+    private readonly PersistentDataStore<MyEntity> _store;
+    
+    public MyService(IDataStoreProvider provider, IRepositoryFactory factory)
+    {
+        _store = provider.GetPersistent<MyEntity>(
+            factory,
+            isSingleton: true,
+            trackPropertyChanges: true,
+            autoLoad: true);
+    }
+    
+    public ReadOnlyObservableCollection<MyEntity> Items => _store.Items;
+}
+```
+
+##### DataStoreWrapper Pattern
+```csharp
+public sealed class DataStoreWrapper
+{
+    private readonly PersistentDataStore<EntityA> _storeA;
+    private readonly PersistentDataStore<EntityB> _storeB;
+
+    public DataStoreWrapper(IDataStoreProvider provider, IRepositoryFactory factory)
+    {
+        _storeA = provider.GetPersistent<EntityA>(factory, isSingleton: true, autoLoad: true);
+        _storeB = provider.GetPersistent<EntityB>(factory, isSingleton: true, autoLoad: true);
+    }
+
+    public ReadOnlyObservableCollection<EntityA> EntitiesA => _storeA.Items;
+    public ReadOnlyObservableCollection<EntityB> EntitiesB => _storeB.Items;
+}
+```
+
+#### Weitere DI-Conventions
+- Verwende Constructor Injection
 - Registriere EqualityComparer explizit für DataToolKit-Repositories
-- Nutze Constructor Injection
+- Bevorzuge Singletons für Repositories und DataStores
+- Verwende `TryAddSingleton` für optionale Registrierungen
 
 #### Namespaces
 ```csharp
@@ -129,25 +390,12 @@ public string RequiredValue { get; set; } = string.Empty;
 - ? Keine Tests ohne explizite Aufforderung erstellen
 - ? Keine Dokumentation ohne explizite Aufforderung erstellen/bearbeiten
 - ? **Niemals automatisch README/Markdown-Dateien in Quellcode-Ordnern erstellen**
+- ? **Niemals ServiceModules verschachteln (siehe kritische Regel oben)**
 - ? Keine Breaking Changes an bestehenden APIs
 - ? Keine `#pragma warning disable` ohne guten Grund
 - ? Keine leeren catch-Blöcke ohne Kommentar
 
 ### Bevorzugte Muster
-
-#### Repository-Pattern (DataToolKit)
-```csharp
-// ? Storage Options registrieren
-services.AddSingleton<IStorageOptions<Customer>>(
-    new JsonStorageOptions<Customer>("MyApp", "customers", "Data"));
-
-// ? EqualityComparer registrieren
-services.AddSingleton<IEqualityComparer<Customer>>(
-    new CustomerComparer());
-
-// ? Repository registrieren
-services.AddJsonRepository<Customer>();
-```
 
 #### ViewModel-Pattern (CustomWPFControls)
 ```csharp
@@ -169,3 +417,4 @@ public class MyListViewModel : CollectionViewModel<MyModel, MyViewModel>
 - Bevorzuge Konsistenz mit bestehendem Code über "Best Practices"
 - Frage nach, wenn unklar ist, ob Tests/Dokumentation gewünscht sind
 - **Im Zweifelsfall: KEINE Dokumentations-Dateien erstellen**
+- **Im Zweifelsfall bei DI: AddModulesFromAssemblies verwenden**
