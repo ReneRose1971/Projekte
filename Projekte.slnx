@@ -1,5 +1,22 @@
 <Solution>
   <Folder Name="/Apps/" />
+  <Folder Name="/Apps/Scriptum/" />
+  <Folder Name="/Apps/Scriptum/Production/">
+    <Project Path="Apps/Scriptum/Production/Scriptum.Content/Scriptum.Content.csproj" />
+    <Project Path="Apps/Scriptum/Production/Scriptum.Core/Scriptum.Core.csproj" />
+    <Project Path="Apps/Scriptum/Production/Scriptum.Engine/Scriptum.Engine.csproj" />
+    <Project Path="Apps/Scriptum/Production/Scriptum.Persistence/Scriptum.Persistence.csproj" />
+    <Project Path="Apps/Scriptum/Production/Scriptum.Progress/Scriptum.Progress.csproj" />
+    <Project Path="Apps/Scriptum/Production/Scriptum.Wpf/Scriptum.Wpf.csproj" />
+  </Folder>
+  <Folder Name="/Apps/Scriptum/Tests/">
+    <Project Path="Apps/Scriptum/Tests/Scriptum.Content.Tests/Scriptum.Content.Tests.csproj" />
+    <Project Path="Apps/Scriptum/Tests/Scriptum.Core.Tests/Scriptum.Core.Tests.csproj" />
+    <Project Path="Apps/Scriptum/Tests/Scriptum.Engine.Tests/Scriptum.Engine.Tests.csproj" />
+    <Project Path="Apps/Scriptum/Tests/Scriptum.Persistence.Tests/Scriptum.Persistence.Tests.csproj" />
+    <Project Path="Apps/Scriptum/Tests/Scriptum.Progress.Tests/Scriptum.Progress.Tests.csproj" />
+    <Project Path="Apps/Scriptum/Tests/Scriptum.Wpf.Tests/Scriptum.Wpf.Tests.csproj" />
+  </Folder>
   <Folder Name="/Apps/SolutionBundler/">
     <Project Path="SolutionBundler.Core/SolutionBundler.Core.csproj" />
     <Project Path="SolutionBundler.Tests/SolutionBundler.Tests.csproj" />
