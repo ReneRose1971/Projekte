@@ -9,35 +9,45 @@
     
     <Grid Margin="10">
         <Grid.ColumnDefinitions>
-            <!-- Links: Project Manager (33%) -->
             <ColumnDefinition Width="1*"/>
             <ColumnDefinition Width="5"/>
-            <!-- Rechts: Log Output (66%) -->
             <ColumnDefinition Width="2*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Left Panel: Project Manager -->
-        <controls:ProjectListEditorView 
-            Grid.Column="0"
-            Title="Projekte"
-            EmptyMessage="Keine Projekte hinzugefuegt. Klicken Sie auf Hinzufuegen."
-            ItemsSource="{Binding Projects}"
-            SelectedItem="{Binding SelectedProject, Mode=TwoWay}"
-            AddCommand="{Binding AddProjectCommand}"
-            DeleteCommand="{Binding RemoveProjectCommand}"
-            ClearCommand="{Binding ClearProjectsCommand}"
-            IsAddVisible="True"
-            IsDeleteVisible="True"
-            IsClearVisible="True"
-            IsEditVisible="False"/>
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
-        <!-- GridSplitter -->
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,5">
+                <TextBlock Text="Gruppe:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <ComboBox ItemsSource="{Binding AvailableGroups}"
+                          SelectedItem="{Binding SelectedGroupFilter, Mode=TwoWay}"
+                          MinWidth="150"
+                          VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <controls:ProjectListEditorView 
+                Grid.Row="1"
+                Title="Projekte"
+                EmptyMessage="Keine Projekte hinzugefuegt. Klicken Sie auf Hinzufuegen."
+                ItemsSource="{Binding FilteredProjects}"
+                SelectedItem="{Binding SelectedProject, Mode=TwoWay}"
+                AddCommand="{Binding AddProjectCommand}"
+                DeleteCommand="{Binding RemoveProjectCommand}"
+                ClearCommand="{Binding ClearProjectsCommand}"
+                IsAddVisible="True"
+                IsDeleteVisible="True"
+                IsClearVisible="True"
+                IsEditVisible="False"/>
+        </Grid>
+
         <GridSplitter Grid.Column="1"
                       HorizontalAlignment="Stretch"
                       Background="#DDDDDD"
                       ShowsPreview="True"/>
 
-        <!-- Right Panel: Log Output -->
         <controls:LogOutputView 
             Grid.Column="2"
             Title="Ausgabe"

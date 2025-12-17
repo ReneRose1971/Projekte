@@ -1,4 +1,6 @@
 using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
+using System;
 using System.Collections.Generic;
 using Xunit;
 

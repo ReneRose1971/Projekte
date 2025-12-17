@@ -1,7 +1,7 @@
 using Common.Bootstrap;
 using CustomWPFControls.Factories;
 using Microsoft.Extensions.DependencyInjection;
-using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
 using SolutionBundler.WPF.ViewModels;
 
 namespace SolutionBundler.WPF;

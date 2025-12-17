@@ -1,7 +1,10 @@
+using Common.Bootstrap;
+using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Abstractions.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using SolutionBundler.Core;
 using SolutionBundler.Core.Abstractions;
-using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
 using SolutionBundler.Core.Storage;
 using System;
 using System.Collections.Generic;

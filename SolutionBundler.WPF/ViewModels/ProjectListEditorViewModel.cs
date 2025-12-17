@@ -3,13 +3,17 @@ using CustomWPFControls.Factories;
 using CustomWPFControls.ViewModels;
 using DataToolKit.Abstractions.DataStores;
 using PropertyChanged;
-using SolutionBundler.Core.Abstractions;
+using SolutionBundler.Core.Implementations;
 using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
 using SolutionBundler.Core.Storage;
 using SolutionBundler.WPF.ViewModels.Helpers;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Data;
+using System.ComponentModel;
 using System.IO;
 using System.Collections.Generic;
 using System;
@@ -26,11 +30,18 @@ namespace SolutionBundler.WPF.ViewModels;
 public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<ProjectInfo, ProjectInfoViewModel>
 {
     private readonly ProjectStore _projectStore;
-    private readonly IBundleOrchestrator _bundleOrchestrator;
+    private readonly BundleOrchestrator _bundleOrchestrator;
     private string _statusMessage = "Bereit zum Scannen...";
     private int _progressPercentage;
     private string _logText = "Bereit zum Scannen...\nWählen Sie Projekte aus und starten Sie den Scan-Prozess.";
     private bool _isScanning;
+    private string? _selectedGroupFilter;
+    private ICollectionView? _filteredProjectsView;
+
+    /// <summary>
+    /// Konstante für "Alle Gruppen" Filter-Option.
+    /// </summary>
+    private const string AllGroupsFilter = "(Alle)";
 
     /// <summary>
     /// Erstellt ein neues ViewModel für die Projekt-Verwaltung.
@@ -45,7 +56,7 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
         IDataStoreProvider dataStoreProvider,
         IViewModelFactory<ProjectInfo, ProjectInfoViewModel> viewModelFactory,
         IEqualityComparer<ProjectInfo> comparer,
-        IBundleOrchestrator bundleOrchestrator)
+        BundleOrchestrator bundleOrchestrator)
         : base(
             dataStoreProvider.GetDataStore<ProjectInfo>(),
             viewModelFactory,
@@ -60,6 +71,13 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
         ScanAllProjectsCommand = new AsyncRelayCommand(
             ExecuteScanAllProjectsAsync, 
             () => !IsScanning && Projects.Count > 0);
+
+        ScanFilteredProjectsCommand = new AsyncRelayCommand(
+            ExecuteScanFilteredProjectsAsync,
+            () => !IsScanning && FilteredProjects.Cast<object>().Any());
+
+        // Initialisiere Gruppen-Filter
+        InitializeAvailableGroups();
     }
 
     #region Properties
@@ -71,6 +89,23 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
     public ReadOnlyObservableCollection<ProjectInfoViewModel> Projects => Items;
 
     /// <summary>
+    /// Gefilterte Ansicht auf Projects basierend auf SelectedGroupFilter.
+    /// </summary>
+    [DoNotNotify]
+    public ICollectionView FilteredProjects
+    {
+        get
+        {
+            if (_filteredProjectsView == null)
+            {
+                _filteredProjectsView = CollectionViewSource.GetDefaultView(Projects);
+                _filteredProjectsView.Filter = FilterByGroup;
+            }
+            return _filteredProjectsView;
+        }
+    }
+
+    /// <summary>
     /// Aktuell ausgewähltes Projekt.
     /// </summary>
     [DoNotNotify]
@@ -79,6 +114,28 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
         get => SelectedItem;
         set => SelectedItem = value;
     }
+
+    /// <summary>
+    /// Aktuell ausgewählter Gruppen-Filter.
+    /// </summary>
+    public string? SelectedGroupFilter
+    {
+        get => _selectedGroupFilter;
+        set
+        {
+            if (_selectedGroupFilter != value)
+            {
+                _selectedGroupFilter = value;
+                FilteredProjects.Refresh();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Verfügbare Gruppen für Filter-ComboBox (inkl. "Alle").
+    /// </summary>
+    [DoNotNotify]
+    public ObservableCollection<string> AvailableGroups { get; } = new();
 
     /// <summary>
     /// Status-Nachricht für UI-Anzeige.
@@ -172,6 +229,12 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
     [DoNotNotify]
     public ICommand ScanAllProjectsCommand { get; }
 
+    /// <summary>
+    /// Command: Nur gefilterte Projekte scannen.
+    /// </summary>
+    [DoNotNotify]
+    public ICommand ScanFilteredProjectsCommand { get; }
+
     #endregion
 
     #region Configuration Methods
@@ -184,7 +247,40 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
 
             if (dialog.ShowDialog() == true)
             {
-                return TryAddProjectFromDialog(dialog.FileName);
+                var projectPath = dialog.FileName;
+                
+                // Versuche Projekt hinzuzufügen
+                if (!TryAddProject(projectPath))
+                {
+                    return null; // Fehler oder bereits vorhanden
+                }
+
+                // Hole das hinzugefügte Projekt aus dem Store
+                var projectName = Path.GetFileNameWithoutExtension(projectPath);
+                var projectInfo = _projectStore.Projects.FirstOrDefault(p => 
+                    string.Equals(p.Name, projectName, StringComparison.OrdinalIgnoreCase));
+
+                if (projectInfo == null)
+                {
+                    return null; // Sollte nicht passieren
+                }
+
+                // Frage nach optionaler Gruppe
+                var group = UserDialogHelper.ShowGroupInputDialog(
+                    "Möchten Sie das Projekt einer Gruppe zuordnen?\n" +
+                    "(Leer lassen für keine Gruppe)",
+                    string.Empty);
+
+                // Wenn Gruppe angegeben wurde, setzen (wird automatisch persistiert)
+                if (!string.IsNullOrWhiteSpace(group))
+                {
+                    projectInfo.Group = group;
+                }
+
+                // Aktualisiere verfügbare Gruppen nach Hinzufügen
+                UpdateAvailableGroups();
+
+                return null; // Kein neues Objekt zurückgeben, da bereits im Store
             }
 
             return null;
@@ -193,16 +289,29 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
 
     private void ConfigureEditProjectFunction()
     {
-        EditModel = (project) =>
+        EditModel = (projectViewModel) =>
         {
-            UserDialogHelper.ShowProjectDetails(
-                project.Name,
-                project.Path,
-                File.Exists(project.Path));
+            var newGroup = UserDialogHelper.ShowProjectDetails(
+                projectViewModel.Name,
+                projectViewModel.Path,
+                File.Exists(projectViewModel.Path),
+                projectViewModel.Group);
+
+            // Wenn sich die Gruppe geändert hat, aktualisieren (wird automatisch persistiert)
+            if (newGroup != projectViewModel.Group)
+            {
+                projectViewModel.Group = newGroup;
+                
+                // Aktualisiere verfügbare Gruppen nach Änderung
+                UpdateAvailableGroups();
+                
+                // Aktualisiere Filter, falls nötig
+                FilteredProjects.Refresh();
+            }
         };
     }
 
-    private ProjectInfo? TryAddProjectFromDialog(string projectPath)
+    private bool TryAddProject(string projectPath)
     {
         try
         {
@@ -210,27 +319,100 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
 
             if (_projectStore.AddProject(fullPath))
             {
-                return null;
+                return true;
             }
             else
             {
                 UserDialogHelper.ShowInformation("Das Projekt existiert bereits in der Liste.");
+                return false;
             }
         }
         catch (FileNotFoundException ex)
         {
             UserDialogHelper.ShowError($"Projekt-Datei nicht gefunden:\n{ex.Message}");
+            return false;
         }
         catch (ArgumentException ex)
         {
             UserDialogHelper.ShowError($"Ungültiger Projekt-Pfad:\n{ex.Message}");
+            return false;
         }
         catch (Exception ex)
         {
             UserDialogHelper.ShowError($"Fehler beim Laden des Projekts:\n{ex.Message}");
+            return false;
+        }
+    }
+
+    private ProjectInfo? TryAddProjectFromDialog(string projectPath)
+    {
+        TryAddProject(projectPath);
+        return null;
+    }
+
+    #endregion
+
+    #region Filter Methods
+
+    /// <summary>
+    /// Filtert Projekte nach ausgewählter Gruppe.
+    /// </summary>
+    private bool FilterByGroup(object obj)
+    {
+        if (obj is not ProjectInfoViewModel projectViewModel)
+            return false;
+
+        // "Alle" oder kein Filter: alle anzeigen
+        if (string.IsNullOrEmpty(_selectedGroupFilter) || 
+            _selectedGroupFilter == AllGroupsFilter)
+            return true;
+
+        // Prüfe ob Gruppe übereinstimmt
+        return string.Equals(
+            projectViewModel.Group, 
+            _selectedGroupFilter, 
+            StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Aktualisiert die Liste der verfügbaren Gruppen.
+    /// </summary>
+    private void UpdateAvailableGroups()
+    {
+        var currentSelection = SelectedGroupFilter;
+
+        AvailableGroups.Clear();
+        AvailableGroups.Add(AllGroupsFilter);
+
+        var groups = _projectStore.GetGroups();
+        foreach (var group in groups)
+        {
+            AvailableGroups.Add(group);
         }
 
-        return null;
+        // Wiederherstellung der Auswahl oder Standard auf "Alle"
+        if (currentSelection != null && AvailableGroups.Contains(currentSelection))
+        {
+            SelectedGroupFilter = currentSelection;
+        }
+        else
+        {
+            SelectedGroupFilter = AllGroupsFilter;
+        }
+    }
+
+    /// <summary>
+    /// Initialisiert die verfügbaren Gruppen beim Start.
+    /// </summary>
+    private void InitializeAvailableGroups()
+    {
+        UpdateAvailableGroups();
+        
+        // Bei Collection-Änderungen Gruppen aktualisieren
+        ((INotifyCollectionChanged)Projects).CollectionChanged += (s, e) =>
+        {
+            UpdateAvailableGroups();
+        };
     }
 
     #endregion
@@ -239,11 +421,24 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
 
     private async Task ExecuteScanAllProjectsAsync()
     {
+        await ExecuteScanProjectsAsync(loadAllProjects: true);
+    }
+
+    private async Task ExecuteScanFilteredProjectsAsync()
+    {
+        await ExecuteScanProjectsAsync(loadAllProjects: false);
+    }
+
+    private async Task ExecuteScanProjectsAsync(bool loadAllProjects)
+    {
         try
         {
             InitializeScan();
             
-            var projects = LoadProjects();
+            var projects = loadAllProjects 
+                ? LoadProjects() 
+                : LoadFilteredProjects();
+                
             if (projects.Count == 0)
             {
                 HandleNoProjectsFound();
@@ -253,7 +448,13 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
             LogProjectsLoaded(projects.Count);
             
             var outputDirectory = ProjectDialogHelper.GetBundleOutputDirectory();
-            AppendLog($"Ausgabe-Verzeichnis: {outputDirectory}\n\n");
+            AppendLog($"Ausgabe-Verzeichnis: {outputDirectory}\n");
+            
+            if (!loadAllProjects && !string.IsNullOrEmpty(_selectedGroupFilter) && _selectedGroupFilter != AllGroupsFilter)
+            {
+                AppendLog($"Filter aktiv: Gruppe '{_selectedGroupFilter}'\n");
+            }
+            AppendLog("\n");
 
             await ProcessProjectsAsync(projects);
 
@@ -280,6 +481,14 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
     private List<ProjectInfo> LoadProjects()
     {
         return _projectStore.Projects.ToList();
+    }
+
+    private List<ProjectInfo> LoadFilteredProjects()
+    {
+        return FilteredProjects
+            .Cast<ProjectInfoViewModel>()
+            .Select(vm => vm.Model)
+            .ToList();
     }
 
     private void HandleNoProjectsFound()
@@ -326,9 +535,18 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
             }
 
             var scanSettings = CreateScanSettings(project);
-            var outputFile = await Task.Run(() => _bundleOrchestrator.Run(projectDir, scanSettings));
+            
+            // Group aus ProjectInfo verwenden
+            var outputFile = await Task.Run(() => 
+                _bundleOrchestrator.Run(projectDir, scanSettings, project.Group));
 
             AppendLog($"  > Markdown generiert: {outputFile}\n");
+            
+            // Optional: Group in Log ausgeben
+            if (!string.IsNullOrWhiteSpace(project.Group))
+            {
+                AppendLog($"    Gruppe: {project.Group}\n");
+            }
         }
         catch (Exception ex)
         {

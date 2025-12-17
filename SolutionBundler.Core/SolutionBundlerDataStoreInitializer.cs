@@ -4,6 +4,7 @@ using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Storage.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
 
 namespace SolutionBundler.Core;
 
@@ -40,10 +41,11 @@ public sealed class SolutionBundlerDataStoreInitializer : IDataStoreInitializer
         // - Persistent (JSON-Repository)
         // - AutoLoad aktiviert (lädt bestehende Projekte beim Start)
         // - Singleton (eine Instanz anwendungsweit)
+        // - trackPropertyChanges: true (da ProjectInfo jetzt INotifyPropertyChanged via Fody implementiert)
         provider.GetPersistent<ProjectInfo>(
             repositoryFactory,
             isSingleton: true,
-            trackPropertyChanges: false,
+            trackPropertyChanges: true,
             autoLoad: true);
     }
 }

@@ -1,4 +1,5 @@
 using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
 using SolutionBundler.WPF.ViewModels;
 using Xunit;
 

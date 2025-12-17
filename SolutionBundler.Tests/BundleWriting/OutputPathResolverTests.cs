@@ -2,6 +2,7 @@ using SolutionBundler.Core.Implementations.BundleWriting;
 using SolutionBundler.Core.Models;
 using System;
 using System.IO;
+using System.Linq;
 using Xunit;
 
 namespace SolutionBundler.Tests.BundleWriting;
@@ -113,4 +114,187 @@ public class OutputPathResolverTests
 
         Assert.EndsWith(expectedEnding, result);
     }
+
+    #region Group Tests
+
+    [Fact]
+    public void ResolveOutputPath_WithoutGroup_UsesBaseDirectory()
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "test.md" };
+
+        // Act
+        var result = OutputPathResolver.ResolveOutputPath(settings, "Project", group: null);
+
+        // Assert
+        Assert.Contains(Path.Combine("SolutionBundler", "Bundles"), result);
+        Assert.DoesNotContain(Path.Combine("Bundles", "Apps"), result);
+        Assert.DoesNotContain(Path.Combine("Bundles", "Libraries"), result);
+    }
+
+    [Fact]
+    public void ResolveOutputPath_WithEmptyGroup_UsesBaseDirectory()
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "test.md" };
+
+        // Act
+        var result = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "");
+
+        // Assert
+        Assert.Contains(Path.Combine("SolutionBundler", "Bundles"), result);
+        Assert.DoesNotContain(Path.Combine("Bundles", "Apps"), result);
+    }
+
+    [Fact]
+    public void ResolveOutputPath_WithWhitespaceGroup_UsesBaseDirectory()
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "test.md" };
+
+        // Act
+        var result = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "   ");
+
+        // Assert
+        Assert.Contains(Path.Combine("SolutionBundler", "Bundles"), result);
+    }
+
+    [Fact]
+    public void ResolveOutputPath_WithValidGroup_CreatesGroupSubdirectory()
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "project.md" };
+
+        // Act
+        var result = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "Apps");
+
+        // Assert
+        Assert.Contains(Path.Combine("Bundles", "Apps", "project.md"), result);
+        var directory = Path.GetDirectoryName(result);
+        Assert.NotNull(directory);
+        Assert.True(Directory.Exists(directory));
+    }
+
+    [Theory]
+    [InlineData("Apps", "Apps")]
+    [InlineData("Libraries", "Libraries")]
+    [InlineData("Core Components", "Core Components")]
+    [InlineData("Test Projects", "Test Projects")]
+    public void ResolveOutputPath_WithDifferentGroups_CreatesCorrectSubdirectories(string group, string expectedInPath)
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "test.md" };
+
+        // Act
+        var result = OutputPathResolver.ResolveOutputPath(settings, "Project", group: group);
+
+        // Assert
+        Assert.Contains(Path.Combine("Bundles", expectedInPath), result);
+        var directory = Path.GetDirectoryName(result);
+        Assert.NotNull(directory);
+        Assert.True(Directory.Exists(directory));
+    }
+
+    [Fact]
+    public void ResolveOutputPath_WithInvalidCharactersInGroup_SanitizesGroupName()
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "test.md" };
+
+        // Act - Gruppe mit ungültigen Zeichen: < > : " / \ | ? *
+        var result = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "Apps<>:\"/\\|?*Test");
+
+        // Assert
+        // Ungültige Zeichen sollten durch _ ersetzt werden
+        // Prüfe dass der Pfad existiert und einen bereinigten Namen enthält
+        Assert.Contains(Path.Combine("Bundles"), result);
+        var directory = Path.GetDirectoryName(result);
+        Assert.NotNull(directory);
+        Assert.True(Directory.Exists(directory));
+        
+        // Der bereinigte Name sollte keine ungültigen Zeichen mehr enthalten
+        var groupDir = new DirectoryInfo(directory).Name;
+        Assert.DoesNotContain("<", groupDir);
+        Assert.DoesNotContain(">", groupDir);
+        Assert.DoesNotContain(":", groupDir);
+        Assert.DoesNotContain("\"", groupDir);
+        Assert.DoesNotContain("/", groupDir);
+        Assert.DoesNotContain("\\", groupDir);
+        Assert.DoesNotContain("|", groupDir);
+        Assert.DoesNotContain("?", groupDir);
+        Assert.DoesNotContain("*", groupDir);
+    }
+
+    [Fact]
+    public void ResolveOutputPath_WithGroupContainingOnlyInvalidChars_UsesDefaultName()
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "test.md" };
+
+        // Act
+        var result = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "<>:\"/\\|?*");
+
+        // Assert
+        // Wenn nach Bereinigung nur Whitespace/Underscores übrig sind, sollte ein Fallback verwendet werden
+        Assert.Contains(Path.Combine("Bundles"), result);
+        var directory = Path.GetDirectoryName(result);
+        Assert.NotNull(directory);
+        Assert.True(Directory.Exists(directory));
+        
+        // Der resultierende Pfad sollte einen gültigen Ordner haben (entweder Default oder bereinigter Name)
+        var groupDir = new DirectoryInfo(directory).Name;
+        Assert.NotEmpty(groupDir);
+        Assert.True(groupDir == "Default" || groupDir.All(c => c == '_'), 
+            $"Expected 'Default' or all underscores, but got: {groupDir}");
+    }
+
+    [Fact]
+    public void ResolveOutputPath_WithGroupHavingLeadingTrailingSpaces_TrimsSpaces()
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "test.md" };
+
+        // Act
+        var result = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "  Apps  ");
+
+        // Assert
+        Assert.Contains(Path.Combine("Bundles", "Apps"), result);
+        Assert.DoesNotContain("  Apps  ", result);
+    }
+
+    [Fact]
+    public void ResolveOutputPath_GroupsAreCaseSensitiveInFileSystem()
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "test.md" };
+
+        // Act
+        var resultLower = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "apps");
+        var resultUpper = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "APPS");
+        var resultMixed = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "Apps");
+
+        // Assert - Auf Windows sind Pfade case-insensitive, aber Namen werden beibehalten
+        Assert.Contains(Path.Combine("Bundles", "apps"), resultLower);
+        Assert.Contains(Path.Combine("Bundles", "APPS"), resultUpper);
+        Assert.Contains(Path.Combine("Bundles", "Apps"), resultMixed);
+    }
+
+    [Fact]
+    public void ResolveOutputPath_WithNestedGroupName_CreatesNestedDirectory()
+    {
+        // Arrange
+        var settings = new ScanSettings { OutputFileName = "test.md" };
+
+        // Act - Gruppe enthält Backslash (wird zu Underscore)
+        var result = OutputPathResolver.ResolveOutputPath(settings, "Project", group: "Apps\\Scriptum");
+
+        // Assert
+        // Backslash ist ungültiges Zeichen und wird zu_
+        Assert.Contains(Path.Combine("Bundles", "Apps_Scriptum"), result);
+        var directory = Path.GetDirectoryName(result);
+        Assert.NotNull(directory);
+        Assert.True(Directory.Exists(directory));
+    }
+
+    #endregion
 }

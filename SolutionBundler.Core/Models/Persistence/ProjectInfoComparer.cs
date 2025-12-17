@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace SolutionBundler.Core.Models;
+namespace SolutionBundler.Core.Models.Persistence;
 
 /// <summary>
 /// EqualityComparer für ProjectInfo basierend auf dem Name-Property (case-insensitive).
+/// Die Group-Property wird bewusst NICHT berücksichtigt, damit Gruppenänderungen
+/// nicht zur Erstellung neuer Objekte führen.
 /// </summary>
 public sealed class ProjectInfoComparer : IEqualityComparer<ProjectInfo>
 {

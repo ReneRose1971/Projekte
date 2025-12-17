@@ -31,8 +31,9 @@ public sealed class MarkdownBundleWriter : IBundleWriter
     /// <param name="rootPath">Root-Pfad des Projekts.</param>
     /// <param name="files">Sammlung von Dateien, die ins Bundle aufgenommen werden sollen.</param>
     /// <param name="settings">Einstellungen für Scan und Ausgabe (enthält OutputFileName und MaskSecrets).</param>
+    /// <param name="group">Optionaler Gruppenname für Unterordner-Organisation.</param>
     /// <returns>Vollständiger Pfad zur erzeugten Markdown-Datei.</returns>
-    public string Write(string rootPath, IEnumerable<FileEntry> files, ScanSettings settings)
+    public string Write(string rootPath, IEnumerable<FileEntry> files, ScanSettings settings, string? group = null)
     {
         var fileList = files.ToList();
         var projectName = Path.GetFileName(rootPath);
@@ -43,10 +44,22 @@ public sealed class MarkdownBundleWriter : IBundleWriter
             _contentReader,
             settings.MaskSecrets);
 
-        var outputPath = OutputPathResolver.ResolveOutputPath(settings, projectName);
+        var outputPath = OutputPathResolver.ResolveOutputPath(settings, projectName, group);
 
         File.WriteAllText(outputPath, markdownContent, Encoding.UTF8);
 
         return outputPath;
+    }
+
+    /// <summary>
+    /// Schreibt das Bundle als Markdown-Datei (Interface-Implementierung ohne Group).
+    /// </summary>
+    /// <param name="rootPath">Root-Pfad des Projekts.</param>
+    /// <param name="files">Sammlung von Dateien, die ins Bundle aufgenommen werden sollen.</param>
+    /// <param name="settings">Einstellungen für Scan und Ausgabe (enthält OutputFileName und MaskSecrets).</param>
+    /// <returns>Vollständiger Pfad zur erzeugten Markdown-Datei.</returns>
+    string IBundleWriter.Write(string rootPath, IEnumerable<FileEntry> files, ScanSettings settings)
+    {
+        return Write(rootPath, files, settings, group: null);
     }
 }

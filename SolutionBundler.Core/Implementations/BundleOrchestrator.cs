@@ -8,13 +8,13 @@ namespace SolutionBundler.Core.Implementations;
 /// <summary>
 /// Koordiniert die Durchführung des Scans und das Erstellen des Bundles.
 /// </summary>
-public sealed class BundleOrchestrator : IBundleOrchestrator
+public class BundleOrchestrator : IBundleOrchestrator
 {
     private readonly IFileScanner _scanner;
     private readonly IProjectMetadataReader _metadata;
     private readonly IContentClassifier _classifier;
     private readonly IHashCalculator _hasher;
-    private readonly IBundleWriter _writer;
+    private readonly MarkdownBundleWriter _writer;
 
     /// <summary>
     /// Erstellt eine neue Instanz des Orchestrators mit den benötigten Diensten.
@@ -30,7 +30,7 @@ public sealed class BundleOrchestrator : IBundleOrchestrator
         _metadata = metadata;
         _classifier = classifier;
         _hasher = hasher;
-        _writer = writer;
+        _writer = (MarkdownBundleWriter)writer;
     }
 
     /// <summary>
@@ -40,6 +40,18 @@ public sealed class BundleOrchestrator : IBundleOrchestrator
     /// <param name="settings">Scan- und Ausgabeeinstellungen (enthält OutputFileName).</param>
     /// <returns>Pfad zur erzeugten Ausgabedatei.</returns>
     public string Run(string rootPath, ScanSettings settings)
+    {
+        return Run(rootPath, settings, group: null);
+    }
+
+    /// <summary>
+    /// Führt Scan, Hash-Berechnung, Klassifizierung und Bundle-Erstellung aus.
+    /// </summary>
+    /// <param name="rootPath">Wurzelverzeichnis des Projekts.</param>
+    /// <param name="settings">Scan- und Ausgabeeinstellungen (enthält OutputFileName).</param>
+    /// <param name="group">Optionaler Gruppenname aus ProjectInfo.Group für Unterordner-Organisation.</param>
+    /// <returns>Pfad zur erzeugten Ausgabedatei.</returns>
+    public string Run(string rootPath, ScanSettings settings, string? group)
     {
         var files = _scanner.Scan(rootPath, settings).ToList();
 
@@ -60,7 +72,6 @@ public sealed class BundleOrchestrator : IBundleOrchestrator
 
         _metadata.EnrichBuildActions(files, rootPath);
 
-        // Schreibe Bundle direkt mit rootPath - OutputFileName kommt aus settings
-        return _writer.Write(rootPath, files, settings);
+        return _writer.Write(rootPath, files, settings, group);
     }
 }

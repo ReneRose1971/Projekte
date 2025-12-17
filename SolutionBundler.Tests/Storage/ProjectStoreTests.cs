@@ -1,9 +1,12 @@
 using DataToolKit.Tests.Fakes.Providers;
-using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
 using SolutionBundler.Core.Storage;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Xunit;
+using DataToolKit.Abstractions.Repositories;
 
 namespace SolutionBundler.Tests.Storage;
 
@@ -12,19 +15,22 @@ public class ProjectStoreTests : IDisposable
     private readonly FakeDataStoreProvider _fakeProvider;
     private readonly ProjectStore _store;
     private readonly string _testProjectPath;
+    private readonly string _testProjectPath2;
 
     public ProjectStoreTests()
     {
         _fakeProvider = new FakeDataStoreProvider();
         
-        // ProjectInfo ist ein POCO ? JSON-Repository (kein IEntity!)
+        // Setup PersistentDataStore für ProjectInfo
         _fakeProvider.GetPersistent<ProjectInfo>(
             _fakeProvider.RepositoryFactory,
             isSingleton: true,
             trackPropertyChanges: false,
             autoLoad: false);
         
-        _store = new ProjectStore(_fakeProvider);
+        var mockRepository = new MockProjectInfoRepository();
+        
+        _store = new ProjectStore(_fakeProvider, mockRepository);
         
         // Erstelle temporäre Test-Projektdatei
         _testProjectPath = Path.Combine(Path.GetTempPath(), $"TestProject_{Guid.NewGuid()}.csproj");
@@ -272,5 +278,24 @@ public class ProjectStoreTests : IDisposable
             if (File.Exists(thirdProjectPath))
                 File.Delete(thirdProjectPath);
         }
+    }
+
+    private class MockProjectInfoRepository : IRepositoryBase<ProjectInfo>
+    {
+        private List<ProjectInfo> _data = new();
+
+        public IReadOnlyList<ProjectInfo> Load() => _data.AsReadOnly();
+
+        public void Write(IEnumerable<ProjectInfo> items)
+        {
+            _data = items.ToList();
+        }
+
+        public void Clear()
+        {
+            _data.Clear();
+        }
+
+        public void Dispose() { }
     }
 }

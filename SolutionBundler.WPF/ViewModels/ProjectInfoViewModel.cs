@@ -1,6 +1,6 @@
 using CustomWPFControls.ViewModels;
 using PropertyChanged;
-using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
 using System.IO;
 
 namespace SolutionBundler.WPF.ViewModels;
@@ -29,6 +29,16 @@ public sealed class ProjectInfoViewModel : ViewModelBase<ProjectInfo>
     /// Vollständiger Pfad zur .csproj-Datei.
     /// </summary>
     public string Path => Model.Path;
+
+    /// <summary>
+    /// Optionale Gruppenzuordnung für das Projekt.
+    /// Änderungen werden direkt am Model vorgenommen und müssen manuell persistiert werden.
+    /// </summary>
+    public string? Group
+    {
+        get => Model.Group;
+        set => Model.Group = value;
+    }
 
     /// <summary>
     /// Prüft, ob die .csproj-Datei noch existiert.

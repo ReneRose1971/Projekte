@@ -1,10 +1,13 @@
 using Common.Bootstrap;
 using Common.Extensions;
+using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Abstractions.DI;
+using DataToolKit.Abstractions.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using SolutionBundler.Core.Abstractions;
 using SolutionBundler.Core.Implementations;
 using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
 using SolutionBundler.Core.Storage;
 
 namespace SolutionBundler.Core;
@@ -39,7 +42,12 @@ public sealed class SolutionBundlerCoreModule : IServiceModule
         // WICHTIG: Der DataStore für ProjectInfo wird durch SolutionBundlerDataStoreInitializer
         // nach BuildServiceProvider() erstellt. ProjectStore holt sich den DataStore dann via
         // provider.GetDataStore<ProjectInfo>()
-        services.AddSingleton<ProjectStore>();
+        services.AddSingleton<ProjectStore>(sp =>
+        {
+            var provider = sp.GetRequiredService<IDataStoreProvider>();
+            var repository = sp.GetRequiredService<IRepositoryBase<ProjectInfo>>();
+            return new ProjectStore(provider, repository);
+        });
 
         // Core-Implementierungen
         services.AddSingleton<IFileScanner, DefaultFileScanner>();

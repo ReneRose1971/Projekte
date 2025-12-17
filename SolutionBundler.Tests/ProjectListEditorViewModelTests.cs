@@ -1,8 +1,11 @@
 using CustomWPFControls.Factories;
 using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Abstractions.Repositories;
 using DataToolKit.Storage.DataStores;
 using SolutionBundler.Core.Abstractions;
+using SolutionBundler.Core.Implementations;
 using SolutionBundler.Core.Models;
+using SolutionBundler.Core.Models.Persistence;
 using SolutionBundler.Core.Storage;
 using SolutionBundler.WPF.ViewModels;
 using System;
@@ -32,7 +35,8 @@ public class ProjectListEditorViewModelTests : IDisposable
         // Setup: In-Memory DataStoreProvider für isolierte Tests
         _dataStoreProvider = new TestDataStoreProvider();
 
-        _projectStore = new ProjectStore(_dataStoreProvider);
+        var mockRepository = new MockProjectInfoRepository();
+        _projectStore = new ProjectStore(_dataStoreProvider, mockRepository);
 
         // Setup: ViewModelFactory für ProjectInfoViewModel
         _viewModelFactory = new SimpleViewModelFactory<ProjectInfo, ProjectInfoViewModel>(
@@ -628,14 +632,64 @@ internal class TestDataStoreProvider : IDataStoreProvider
 }
 
 /// <summary>
-/// Mock-Implementation von IBundleOrchestrator für Tests.
+/// Mock-Implementation von BundleOrchestrator für Tests.
 /// </summary>
-internal class MockBundleOrchestrator : IBundleOrchestrator
+internal class MockBundleOrchestrator : BundleOrchestrator
 {
-    public string Run(string rootPath, ScanSettings settings)
+    public MockBundleOrchestrator() 
+        : base(
+            new MockFileScanner(),
+            new MockProjectMetadataReader(),
+            new MockContentClassifier(),
+            new MockHashCalculator(),
+            new MockBundleWriter())
     {
-        // Simuliere erfolgreichen Scan ohne echte Dateioperationen
-        var outputFile = Path.Combine(rootPath, settings.OutputFileName);
-        return outputFile;
     }
+
+    private class MockFileScanner : IFileScanner
+    {
+        public IReadOnlyList<FileEntry> Scan(string rootPath, ScanSettings settings) => Array.Empty<FileEntry>();
+    }
+
+    private class MockProjectMetadataReader : IProjectMetadataReader
+    {
+        public void EnrichBuildActions(IList<FileEntry> files, string rootPath) { }
+    }
+
+    private class MockContentClassifier : IContentClassifier
+    {
+        public string Classify(string filePath) => string.Empty;
+    }
+
+    private class MockHashCalculator : IHashCalculator
+    {
+        public string Sha1(byte[] data) => string.Empty;
+    }
+
+    private class MockBundleWriter : IBundleWriter
+    {
+        public string Write(string rootPath, IEnumerable<FileEntry> files, ScanSettings settings) => string.Empty;
+    }
+}
+
+/// <summary>
+/// Mock-Implementation von IRepositoryBase für Tests.
+/// </summary>
+internal class MockProjectInfoRepository : IRepositoryBase<ProjectInfo>
+{
+    private List<ProjectInfo> _data = new();
+
+    public IReadOnlyList<ProjectInfo> Load() => _data.AsReadOnly();
+
+    public void Write(IEnumerable<ProjectInfo> items)
+    {
+        _data = items.ToList();
+    }
+
+    public void Clear()
+    {
+        _data.Clear();
+    }
+
+    public void Dispose() { }
 }
