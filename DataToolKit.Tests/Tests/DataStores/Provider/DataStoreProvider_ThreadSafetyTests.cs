@@ -224,23 +224,24 @@ namespace DataToolKit.Tests.DataStores.Provider
             var exceptions = new System.Collections.Concurrent.ConcurrentBag<Exception>();
             var tasks = new List<Task>();
 
-            // Act - Gemischte Operationen (NUR GetInMemory und GetPersistent, kein Remove/Clear)
+            // Act - Gemischte Operationen mit VERSCHIEDENEN Typen
+            // (weil pro Typ nur eine Instanz existieren darf)
             for (int i = 0; i < iterations; i++)
             {
                 var index = i; // Capture for closure
                 
-                // Abwechselnd GetInMemory und GetPersistent
+                // Abwechselnd GetInMemory (Customer) und GetPersistent (Order)
                 if (index % 2 == 0)
                 {
                     tasks.Add(Task.Run(() =>
                     {
                         try
                         {
-                            provider.GetInMemory<TestEntity>();
+                            provider.GetInMemory<Customer>();
                         }
                         catch (Exception ex)
                         {
-                            exceptions.Add(new Exception($"GetInMemory failed at iteration {index}", ex));
+                            exceptions.Add(new Exception($"GetInMemory<Customer> failed at iteration {index}", ex));
                         }
                     }));
                 }
@@ -250,13 +251,12 @@ namespace DataToolKit.Tests.DataStores.Provider
                     {
                         try
                         {
-                            // Jeder Thread bekommt seine eigene Factory mit leerem Repository
                             var fakeFactory = new FakeRepositoryFactory();
-                            provider.GetPersistent<TestEntity>(fakeFactory, autoLoad: false);
+                            provider.GetPersistent<Order>(fakeFactory, autoLoad: false);
                         }
                         catch (Exception ex)
                         {
-                            exceptions.Add(new Exception($"GetPersistent failed at iteration {index}", ex));
+                            exceptions.Add(new Exception($"GetPersistent<Order> failed at iteration {index}", ex));
                         }
                     }));
                 }
@@ -273,11 +273,85 @@ namespace DataToolKit.Tests.DataStores.Provider
                     firstException);
             }
 
-            // Zusätzliche Assertions
-            var inMemoryStore = provider.GetInMemory<TestEntity>();
-            Assert.NotNull(inMemoryStore);
+            // Zusätzliche Assertions - verifiziere beide Stores existieren
+            var customerStore = provider.GetInMemory<Customer>();
+            var orderStore = provider.GetPersistent<Order>(new FakeRepositoryFactory(), autoLoad: false);
+            
+            Assert.NotNull(customerStore);
+            Assert.NotNull(orderStore);
+            Assert.NotSame(customerStore, orderStore);
             
             Assert.True(true, "StressTest completed successfully");
+        }
+
+        #endregion
+
+        #region Singleton Exclusivity Tests
+
+        [Fact]
+        public void GetInMemory_ThenGetPersistent_SameType_ThrowsException()
+        {
+            // Arrange
+            using var provider = new DataStoreProvider(_factory);
+            var fakeFactory = new FakeRepositoryFactory();
+            
+            // Act - Zuerst InMemory erstellen
+            var inMemoryStore = provider.GetInMemory<TestEntity>();
+            
+            // Dann versuchen, Persistent für denselben Typ zu erstellen
+            var exception = Assert.Throws<InvalidOperationException>(() =>
+                provider.GetPersistent<TestEntity>(fakeFactory, autoLoad: false));
+            
+            // Assert
+            Assert.Contains("existiert bereits", exception.Message);
+            Assert.Contains("InMemoryDataStore", exception.Message);
+        }
+
+        [Fact]
+        public void GetPersistent_ThenGetInMemory_SameType_ReturnsPersistentStore()
+        {
+            // Arrange
+            using var provider = new DataStoreProvider(_factory);
+            var fakeFactory = new FakeRepositoryFactory();
+            
+            // Act - Zuerst Persistent erstellen
+            var persistentStore = provider.GetPersistent<TestEntity>(fakeFactory, autoLoad: false);
+            
+            // Dann GetInMemory aufrufen
+            var inMemoryStore = provider.GetInMemory<TestEntity>();
+            
+            // Assert - Da PersistentDataStore von InMemoryDataStore erbt, wird der gleiche Store zurückgegeben
+            Assert.Same(persistentStore, inMemoryStore);
+            Assert.IsAssignableFrom<PersistentDataStore<TestEntity>>(inMemoryStore);
+        }
+
+        [Fact]
+        public void GetDataStore_AfterGetInMemory_ReturnsSameInstance()
+        {
+            // Arrange
+            using var provider = new DataStoreProvider(_factory);
+            
+            // Act
+            var inMemoryStore = provider.GetInMemory<TestEntity>();
+            var dataStore = provider.GetDataStore<TestEntity>();
+            
+            // Assert
+            Assert.Same(inMemoryStore, dataStore);
+        }
+
+        [Fact]
+        public void GetDataStore_AfterGetPersistent_ReturnsSameInstance()
+        {
+            // Arrange
+            using var provider = new DataStoreProvider(_factory);
+            var fakeFactory = new FakeRepositoryFactory();
+            
+            // Act
+            var persistentStore = provider.GetPersistent<TestEntity>(fakeFactory, autoLoad: false);
+            var dataStore = provider.GetDataStore<TestEntity>();
+            
+            // Assert
+            Assert.Same(persistentStore, dataStore);
         }
 
         #endregion

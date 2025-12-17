@@ -6,18 +6,18 @@ namespace TypeTutor.Logic.Tests.Data;
 
 /// <summary>
 /// Tests für LessonDataEqualityComparer.
-/// Validiert die Title-basierte Equality-Logik.
+/// Validiert die LessonId-basierte Equality-Logik.
 /// </summary>
 public sealed class LessonDataEqualityComparerTests
 {
     private readonly LessonDataEqualityComparer _comparer = new();
 
     [Fact]
-    public void Equals_WithSameTitle_ShouldReturnTrue()
+    public void Equals_WithSameLessonId_ShouldReturnTrue()
     {
         // Arrange
-        var data1 = new LessonData("Home Row", "asdf") { Description = "Basic", Difficulty = 1 };
-        var data2 = new LessonData("Home Row", "jklö") { Description = "Different", Difficulty = 2 };
+        var data1 = new LessonData("L0001", "Home Row", "asdf") { Description = "Basic", Difficulty = 1 };
+        var data2 = new LessonData("L0001", "Upper Row", "jklö") { Description = "Different", Difficulty = 2 };
 
         // Act
         var result = _comparer.Equals(data1, data2);
@@ -27,11 +27,11 @@ public sealed class LessonDataEqualityComparerTests
     }
 
     [Fact]
-    public void Equals_WithDifferentTitle_ShouldReturnFalse()
+    public void Equals_WithDifferentLessonId_ShouldReturnFalse()
     {
         // Arrange
-        var data1 = new LessonData("Home Row", "content") { Description = "desc", Difficulty = 1 };
-        var data2 = new LessonData("Upper Row", "content") { Description = "desc", Difficulty = 1 };
+        var data1 = new LessonData("L0001", "Home Row", "content") { Description = "desc", Difficulty = 1 };
+        var data2 = new LessonData("L0002", "Upper Row", "content") { Description = "desc", Difficulty = 1 };
 
         // Act
         var result = _comparer.Equals(data1, data2);
@@ -54,7 +54,7 @@ public sealed class LessonDataEqualityComparerTests
     public void Equals_WithOneNull_ShouldReturnFalse()
     {
         // Arrange
-        var data = new LessonData("Test", "content") { Description = "desc", Difficulty = 1 };
+        var data = new LessonData("L0001", "Test", "content") { Description = "desc", Difficulty = 1 };
 
         // Act
         var result1 = _comparer.Equals(data, null);
@@ -66,18 +66,18 @@ public sealed class LessonDataEqualityComparerTests
     }
 
     [Theory]
-    [InlineData("Home Row", "Home Row", true)]
-    [InlineData("Home Row", "home row", false)]
-    [InlineData("Lesson A", "Lesson B", false)]
+    [InlineData("L0001", "L0001", true)]
+    [InlineData("L0001", "l0001", false)]
+    [InlineData("L0001", "L0002", false)]
     [InlineData("", "", true)]
-    public void Equals_WithVariousTitles_ShouldCompareCorrectly(
-        string title1,
-        string title2,
+    public void Equals_WithVariousLessonIds_ShouldCompareCorrectly(
+        string lessonId1,
+        string lessonId2,
         bool expected)
     {
         // Arrange
-        var data1 = new LessonData(title1, "content") { Description = "desc", Difficulty = 1 };
-        var data2 = new LessonData(title2, "content") { Description = "desc", Difficulty = 1 };
+        var data1 = new LessonData(lessonId1, "Lesson A", "content") { Description = "desc", Difficulty = 1 };
+        var data2 = new LessonData(lessonId2, "Lesson B", "content") { Description = "desc", Difficulty = 1 };
 
         // Act
         var result = _comparer.Equals(data1, data2);
@@ -87,11 +87,11 @@ public sealed class LessonDataEqualityComparerTests
     }
 
     [Fact]
-    public void GetHashCode_WithSameTitle_ShouldReturnSameHash()
+    public void GetHashCode_WithSameLessonId_ShouldReturnSameHash()
     {
         // Arrange
-        var data1 = new LessonData("Test Lesson", "content1") { Description = "desc1", Difficulty = 1 };
-        var data2 = new LessonData("Test Lesson", "content2") { Description = "desc2", Difficulty = 2 };
+        var data1 = new LessonData("L0001", "Test Lesson A", "content1") { Description = "desc1", Difficulty = 1 };
+        var data2 = new LessonData("L0001", "Test Lesson B", "content2") { Description = "desc2", Difficulty = 2 };
 
         // Act
         var hash1 = _comparer.GetHashCode(data1);
@@ -102,11 +102,11 @@ public sealed class LessonDataEqualityComparerTests
     }
 
     [Fact]
-    public void GetHashCode_WithDifferentTitle_ShouldReturnDifferentHash()
+    public void GetHashCode_WithDifferentLessonId_ShouldReturnDifferentHash()
     {
         // Arrange
-        var data1 = new LessonData("Lesson A", "content") { Description = "desc", Difficulty = 1 };
-        var data2 = new LessonData("Lesson B", "content") { Description = "desc", Difficulty = 1 };
+        var data1 = new LessonData("L0001", "Lesson A", "content") { Description = "desc", Difficulty = 1 };
+        var data2 = new LessonData("L0002", "Lesson B", "content") { Description = "desc", Difficulty = 1 };
 
         // Act
         var hash1 = _comparer.GetHashCode(data1);
@@ -127,11 +127,11 @@ public sealed class LessonDataEqualityComparerTests
     }
 
     [Fact]
-    public void GetHashCode_WithEmptyTitle_ShouldReturnConsistentHash()
+    public void GetHashCode_WithEmptyLessonId_ShouldReturnConsistentHash()
     {
         // Arrange
-        var data1 = new LessonData("", "content1") { Description = "desc1", Difficulty = 1 };
-        var data2 = new LessonData("", "content2") { Description = "desc2", Difficulty = 2 };
+        var data1 = new LessonData("", "Lesson A", "content1") { Description = "desc1", Difficulty = 1 };
+        var data2 = new LessonData("", "Lesson B", "content2") { Description = "desc2", Difficulty = 2 };
 
         // Act
         var hash1 = _comparer.GetHashCode(data1);
@@ -146,13 +146,13 @@ public sealed class LessonDataEqualityComparerTests
     {
         // Arrange
         var set = new HashSet<LessonData>(_comparer);
-        var data1 = new LessonData("Lesson", "content1") { Description = "desc1", Difficulty = 1 };
-        var data2 = new LessonData("Lesson", "content2") { Description = "desc2", Difficulty = 2 };
-        var data3 = new LessonData("Other", "content") { Description = "desc", Difficulty = 1 };
+        var data1 = new LessonData("L0001", "Lesson", "content1") { Description = "desc1", Difficulty = 1 };
+        var data2 = new LessonData("L0001", "Other Lesson", "content2") { Description = "desc2", Difficulty = 2 };
+        var data3 = new LessonData("L0002", "Other", "content") { Description = "desc", Difficulty = 1 };
 
         // Act
         set.Add(data1);
-        set.Add(data2); // Sollte nicht hinzugefügt werden (gleicher Titel)
+        set.Add(data2); // Sollte nicht hinzugefügt werden (gleiche LessonId)
         set.Add(data3);
 
         // Assert
@@ -166,8 +166,8 @@ public sealed class LessonDataEqualityComparerTests
     {
         // Arrange
         var dict = new Dictionary<LessonData, string>(_comparer);
-        var data1 = new LessonData("Key", "content1") { Description = "desc1", Difficulty = 1 };
-        var data2 = new LessonData("Key", "content2") { Description = "desc2", Difficulty = 2 };
+        var data1 = new LessonData("L0001", "Key A", "content1") { Description = "desc1", Difficulty = 1 };
+        var data2 = new LessonData("L0001", "Key B", "content2") { Description = "desc2", Difficulty = 2 };
 
         // Act
         dict[data1] = "Value1";

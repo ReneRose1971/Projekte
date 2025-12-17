@@ -14,6 +14,7 @@ public sealed class DefaultFileScanner : IFileScanner
 {
     /// <summary>
     /// Scannt das Root-Verzeichnis rekursiv nach Dateien gemäß der in <paramref name="settings"/> angegebenen Muster.
+    /// Überspringt automatisch Verzeichnisse, auf die kein Zugriff besteht (z.B. System-Ordner) oder die nicht existieren (z.B. defekte Symlinks).
     /// </summary>
     /// <param name="rootPath">Absoluter Pfad des Projekt-Roots.</param>
     /// <param name="settings">Scan-Einstellungen mit Include/Exclude-Mustern.</param>
@@ -29,23 +30,96 @@ public sealed class DefaultFileScanner : IFileScanner
         bool IsExcludedFile(string file) =>
             settings.ExcludeGlobs.Any(glob => file.EndsWith(glob.Replace("*", ""), StringComparison.OrdinalIgnoreCase));
 
-        foreach (var pattern in settings.IncludePatterns)
+        void ScanDirectory(string directory)
         {
-            foreach (var file in Directory.EnumerateFiles(root, pattern, SearchOption.AllDirectories))
-            {
-                var full = Path.GetFullPath(file);
-                if (IsExcludedDir(full) || IsExcludedFile(full)) continue;
+            // Überspringe ausgeschlossene Verzeichnisse
+            if (IsExcludedDir(directory))
+                return;
 
-                var rel = Path.GetRelativePath(root, full);
-                var fi = new FileInfo(full);
-                files.Add(new FileEntry
+            try
+            {
+                // Scanne Dateien in diesem Verzeichnis
+                foreach (var pattern in settings.IncludePatterns)
                 {
-                    FullPath = full,
-                    RelativePath = rel.Replace('\\', '/'),
-                    Size = fi.Length
-                });
+                    try
+                    {
+                        foreach (var file in Directory.EnumerateFiles(directory, pattern))
+                        {
+                            try
+                            {
+                                var full = Path.GetFullPath(file);
+                                if (IsExcludedFile(full)) continue;
+
+                                var rel = Path.GetRelativePath(root, full);
+                                var fi = new FileInfo(full);
+                                files.Add(new FileEntry
+                                {
+                                    FullPath = full,
+                                    RelativePath = rel.Replace('\\', '/'),
+                                    Size = fi.Length
+                                });
+                            }
+                            catch (UnauthorizedAccessException)
+                            {
+                                // Überspringe Dateien, auf die kein Zugriff besteht
+                            }
+                            catch (IOException)
+                            {
+                                // Überspringe Dateien mit I/O-Problemen (z.B. locked files)
+                            }
+                        }
+                    }
+                    catch (UnauthorizedAccessException)
+                    {
+                        // Überspringe, wenn keine Berechtigung für dieses Pattern
+                    }
+                    catch (DirectoryNotFoundException)
+                    {
+                        // Überspringe, wenn Verzeichnis nicht mehr existiert (z.B. gelöscht während Scan)
+                    }
+                    catch (IOException)
+                    {
+                        // Überspringe bei I/O-Fehlern
+                    }
+                }
+
+                // Rekursiv in Unterverzeichnisse
+                try
+                {
+                    foreach (var subDir in Directory.EnumerateDirectories(directory))
+                    {
+                        ScanDirectory(subDir);
+                    }
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    // Überspringe Unterverzeichnisse, auf die kein Zugriff besteht
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    // Überspringe Unterverzeichnisse, die nicht existieren (z.B. defekte Symlinks)
+                }
+                catch (IOException)
+                {
+                    // Überspringe bei I/O-Fehlern
+                }
+            }
+            catch (UnauthorizedAccessException)
+            {
+                // Überspringe das gesamte Verzeichnis, wenn kein Zugriff besteht
+            }
+            catch (DirectoryNotFoundException)
+            {
+                // Überspringe das gesamte Verzeichnis, wenn es nicht existiert
+            }
+            catch (IOException)
+            {
+                // Überspringe bei I/O-Fehlern
             }
         }
+
+        // Starte rekursive Traversierung
+        ScanDirectory(root);
 
         // Distinct by relative path
         return files

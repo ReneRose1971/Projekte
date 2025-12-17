@@ -16,6 +16,7 @@ public partial class App : System.Windows.Application
 
         var builder = Host.CreateApplicationBuilder();
 
+        // Phase 1: Service-Registrierung
         // SolutionBundler.Core-Module registrieren (enthält DataToolKit, ProjectStore, Services)
         builder.Services.AddModulesFromAssemblies(
             typeof(SolutionBundlerCoreModule).Assembly);
@@ -24,9 +25,15 @@ public partial class App : System.Windows.Application
         builder.Services.AddModulesFromAssemblies(
             typeof(SolutionBundlerWpfModule).Assembly);
 
+        // Phase 2: Container bauen
         _host = builder.Build();
 
-        // MainWindowWithSplitView starten (neues Layout)
+        // Phase 3: DataStores initialisieren (NACH Build!)
+        _host.Services.InitializeDataStores(
+            typeof(SolutionBundlerCoreModule).Assembly,
+            typeof(SolutionBundlerWpfModule).Assembly);
+
+        // Phase 4: MainWindowWithSplitView starten
         var mainWindow = _host.Services.GetRequiredService<MainWindowWithSplitView>();
         mainWindow.Show();
     }

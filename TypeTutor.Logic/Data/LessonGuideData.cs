@@ -4,11 +4,11 @@ using System.Collections.Generic;
 namespace TypeTutor.Logic.Data;
 
 /// <summary>
-/// Data Transfer Object (DTO) für JSON-Serialisierung eines LessonGuide/Moduls.
+/// Data Transfer Object (DTO) für JSON-Serialisierung eines LessonGuide.
 /// Dient für Import/Export-Operationen und JSON-Persistierung.
 /// 
-/// Ein LessonGuide beschreibt ein übergeordnetes Modul (z.B. "M01: Grundreihe")
-/// mit einer ausführlichen Anleitung im Markdown-Format.
+/// Ein LessonGuide beschreibt detaillierte Anleitungen für eine einzelne Lesson
+/// mit ausführlichen Informationen im Markdown-Format.
 /// 
 /// Verwendung:
 /// - JSON-Import aus externen Dateien (z.B. TypeTutor_Import_LessonGuideData.json)
@@ -16,27 +16,25 @@ namespace TypeTutor.Logic.Data;
 /// - Persistierung über DataToolKit JSON-Repository
 /// 
 /// Verknüpfung zu LessonData:
-/// - Der Title eines LessonGuide entspricht dem ModuleId-Feld in LessonData
-/// - Ein LessonGuide kann mehrere Lessons enthalten (1:n-Beziehung)
-/// - Beispiel: LessonGuideData.Title = "M01" ? LessonData.ModuleId = "M01"
+/// - Ein LessonGuide gehört zu genau einer Lesson (1:1-Beziehung)
+/// - Verknüpfung über LessonId (nicht über Title)
+/// - Beispiel: LessonGuideData.LessonId = "L0001" ? LessonData.LessonId = "L0001"
 /// </summary>
 public sealed record LessonGuideData
 {
     /// <summary>
-    /// Titel des Moduls (eindeutiger Identifier).
-    /// Dient als Primärschlüssel für Repository-Operationen und
-    /// als Verknüpfungspunkt für Lessons (über LessonData.ModuleId).
-    /// 
-    /// Beispiele: "M01", "M02", "M03" … "M07"
+    /// Referenz auf die zugehörige Lesson über deren LessonId.
+    /// Verknüpfung: LessonGuideData.LessonId == LessonData.LessonId
+    /// Beispiele: "L0001", "L0002", "L0003" …
     /// </summary>
-    public string Title { get; init; } = string.Empty;
+    public string LessonId { get; init; } = string.Empty;
 
     /// <summary>
-    /// Markdown-formatierte Beschreibung/Anleitung des Moduls.
+    /// Markdown-formatierte Beschreibung/Anleitung für die Lesson.
     /// Kann Überschriften, Listen, Code-Blöcke etc. enthalten.
     /// 
     /// Beispiel:
-    /// # Modul 01: Grundreihe
+    /// # Lektion: Grundreihe
     /// 
     /// ## Lernziele
     /// - Buchstaben asdf jklö beherrschen
@@ -46,7 +44,7 @@ public sealed record LessonGuideData
     /// 1. Einzelne Buchstaben
     /// 2. Buchstabenkombinationen
     /// </summary>
-    public string BodyMarkDown { get; init; } = string.Empty;
+    public string BodyMarkdown { get; init; } = string.Empty;
 
     /// <summary>
     /// Parameterloser Konstruktor für JSON-Deserializer.
@@ -56,32 +54,11 @@ public sealed record LessonGuideData
     /// <summary>
     /// Konstruktor für programmatische Erstellung.
     /// </summary>
-    /// <param name="title">Titel des Moduls (erforderlich).</param>
-    /// <param name="bodyMarkDown">Markdown-Beschreibung (optional).</param>
-    public LessonGuideData(string title, string bodyMarkDown = "")
+    /// <param name="lessonId">Referenz auf die Lesson-ID (erforderlich).</param>
+    /// <param name="bodyMarkdown">Markdown-Beschreibung (optional).</param>
+    public LessonGuideData(string lessonId, string bodyMarkdown = "")
     {
-        Title = title ?? throw new ArgumentNullException(nameof(title));
-        BodyMarkDown = bodyMarkDown ?? string.Empty;
+        LessonId = lessonId ?? throw new ArgumentNullException(nameof(lessonId));
+        BodyMarkdown = bodyMarkdown ?? string.Empty;
     }
-}
-
-/// <summary>
-/// Root-Container für JSON-Dateien mit mehreren LessonGuides/Modulen.
-/// Struktur: { "ModuleGuides": [ {...}, {...} ] }
-/// 
-/// Verwendung für Import/Export:
-/// - TypeTutor_Import_LessonGuideData.json
-/// - Batch-Import von Modulen
-/// </summary>
-public sealed record LessonGuideDataContainer
-{
-    /// <summary>
-    /// Liste aller Module/LessonGuides im Container.
-    /// </summary>
-    public List<LessonGuideData> ModuleGuides { get; init; } = new();
-
-    /// <summary>
-    /// Parameterloser Konstruktor für JSON-Deserializer.
-    /// </summary>
-    public LessonGuideDataContainer() { }
 }

@@ -16,22 +16,22 @@ public sealed class LessonGuideDataTests
     {
         // Arrange & Act
         var data = TestDataBuilder.CreateLessonGuideData(
-            title: "Basic Guide",
+            lessonId: "L0001",
             bodyMarkdown: "# A guide for beginners\n\nContent here"
         );
 
         // Assert
         data.Should().NotBeNull();
-        data.Title.Should().Be("Basic Guide");
-        data.BodyMarkDown.Should().Contain("beginners");
+        data.LessonId.Should().Be("L0001");
+        data.BodyMarkdown.Should().Contain("beginners");
     }
 
     [Fact]
-    public void Equality_WithSameTitle_ShouldBeEqual()
+    public void Equality_WithSameLessonId_ShouldBeEqual()
     {
         // Arrange
-        var data1 = new LessonGuideData("Guide A", "desc1");
-        var data2 = new LessonGuideData("Guide A", "desc2");
+        var data1 = new LessonGuideData("L0001", "desc1");
+        var data2 = new LessonGuideData("L0001", "desc2");
 
         var comparer = new LessonGuideDataEqualityComparer();
 
@@ -40,11 +40,11 @@ public sealed class LessonGuideDataTests
     }
 
     [Fact]
-    public void Equality_WithDifferentTitle_ShouldNotBeEqual()
+    public void Equality_WithDifferentLessonId_ShouldNotBeEqual()
     {
         // Arrange
-        var data1 = new LessonGuideData("Guide A", "desc");
-        var data2 = new LessonGuideData("Guide B", "desc");
+        var data1 = new LessonGuideData("L0001", "desc");
+        var data2 = new LessonGuideData("L0002", "desc");
 
         var comparer = new LessonGuideDataEqualityComparer();
 
@@ -53,11 +53,11 @@ public sealed class LessonGuideDataTests
     }
 
     [Fact]
-    public void GetHashCode_WithSameTitle_ShouldReturnSameHash()
+    public void GetHashCode_WithSameLessonId_ShouldReturnSameHash()
     {
         // Arrange
-        var data1 = new LessonGuideData("Guide A", "desc1");
-        var data2 = new LessonGuideData("Guide A", "desc2");
+        var data1 = new LessonGuideData("L0001", "desc1");
+        var data2 = new LessonGuideData("L0001", "desc2");
 
         var comparer = new LessonGuideDataEqualityComparer();
 
@@ -73,8 +73,8 @@ public sealed class LessonGuideDataTests
     public void Record_Equality_WithIdenticalValues_ShouldBeEqual()
     {
         // Arrange
-        var data1 = new LessonGuideData("Test", "desc");
-        var data2 = new LessonGuideData("Test", "desc");
+        var data1 = new LessonGuideData("L0001", "desc");
+        var data2 = new LessonGuideData("L0001", "desc");
 
         // Act & Assert
         data1.Should().Be(data2);
@@ -85,27 +85,27 @@ public sealed class LessonGuideDataTests
     {
         // Arrange
         var original = TestDataBuilder.CreateLessonGuideData(
-            title: "Original Guide",
+            lessonId: "L0001",
             bodyMarkdown: "Original description"
         );
 
         // Act
-        var modified = original with { BodyMarkDown = "Modified description" };
+        var modified = original with { BodyMarkdown = "Modified description" };
 
         // Assert
-        original.BodyMarkDown.Should().Be("Original description");
-        modified.BodyMarkDown.Should().Be("Modified description");
-        modified.Title.Should().Be("Original Guide");
+        original.BodyMarkdown.Should().Be("Original description");
+        modified.BodyMarkdown.Should().Be("Modified description");
+        modified.LessonId.Should().Be("L0001");
     }
 
     [Fact]
-    public void BodyMarkDown_WithEmptyString_ShouldSucceed()
+    public void BodyMarkdown_WithEmptyString_ShouldSucceed()
     {
         // Arrange & Act
-        var data = new LessonGuideData("Empty Guide", "");
+        var data = new LessonGuideData("L0001", "");
 
         // Assert
-        data.BodyMarkDown.Should().BeEmpty();
+        data.BodyMarkdown.Should().BeEmpty();
     }
 
     [Fact]
@@ -115,54 +115,54 @@ public sealed class LessonGuideDataTests
         var data = new LessonGuideData();
 
         // Assert
-        data.Title.Should().BeEmpty();
-        data.BodyMarkDown.Should().BeEmpty();
+        data.LessonId.Should().BeEmpty();
+        data.BodyMarkdown.Should().BeEmpty();
     }
 
     [Fact]
-    public void ParameterizedConstructor_WithNullTitle_ShouldThrow()
+    public void ParameterizedConstructor_WithNullLessonId_ShouldThrow()
     {
         // Act
         Action act = () => new LessonGuideData(null!, "content");
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("title");
+            .WithParameterName("lessonId");
     }
 
     [Fact]
-    public void ParameterizedConstructor_WithNullBodyMarkDown_ShouldUseEmpty()
+    public void ParameterizedConstructor_WithNullBodyMarkdown_ShouldUseEmpty()
     {
         // Act
-        var data = new LessonGuideData("Guide", null!);
+        var data = new LessonGuideData("L0001", null!);
 
         // Assert
-        data.BodyMarkDown.Should().BeEmpty();
+        data.BodyMarkdown.Should().BeEmpty();
     }
 
     [Fact]
     public void ToString_ShouldReturnReadableRepresentation()
     {
         // Arrange
-        var data = TestDataBuilder.CreateLessonGuideData(title: "My Guide");
+        var data = TestDataBuilder.CreateLessonGuideData(lessonId: "L0001");
 
         // Act
         var result = data.ToString();
 
         // Assert
-        result.Should().Contain("My Guide");
+        result.Should().Contain("L0001");
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("Guide with markdown")]
-    public void BodyMarkDown_ShouldSupportVariousValues(string markdown)
+    public void BodyMarkdown_ShouldSupportVariousValues(string markdown)
     {
         // Arrange & Act
-        var data = new LessonGuideData("Test", markdown);
+        var data = new LessonGuideData("L0001", markdown);
 
         // Assert
-        data.BodyMarkDown.Should().Be(markdown);
+        data.BodyMarkdown.Should().Be(markdown);
     }
 
     [Fact]
@@ -170,13 +170,13 @@ public sealed class LessonGuideDataTests
     {
         // Arrange
         var set = new HashSet<LessonGuideData>(new LessonGuideDataEqualityComparer());
-        var data1 = new LessonGuideData("Guide", "desc1");
-        var data2 = new LessonGuideData("Guide", "desc2");
-        var data3 = new LessonGuideData("Other", "desc");
+        var data1 = new LessonGuideData("L0001", "desc1");
+        var data2 = new LessonGuideData("L0001", "desc2");
+        var data3 = new LessonGuideData("L0002", "desc");
 
         // Act
         set.Add(data1);
-        set.Add(data2); // Sollte nicht hinzugefügt werden (gleicher Titel)
+        set.Add(data2); // Sollte nicht hinzugefügt werden (gleiche LessonId)
         set.Add(data3);
 
         // Assert
@@ -186,17 +186,17 @@ public sealed class LessonGuideDataTests
     }
 
     [Fact]
-    public void BodyMarkDown_WithMultilineMarkdown_ShouldPreserveFormatting()
+    public void BodyMarkdown_WithMultilineMarkdown_ShouldPreserveFormatting()
     {
         // Arrange
         var markdown = "# Title\n\n## Section\n\n- Item 1\n- Item 2";
 
         // Act
-        var data = new LessonGuideData("Guide", markdown);
+        var data = new LessonGuideData("L0001", markdown);
 
         // Assert
-        data.BodyMarkDown.Should().Contain("\n");
-        data.BodyMarkDown.Should().Be(markdown);
+        data.BodyMarkdown.Should().Contain("\n");
+        data.BodyMarkdown.Should().Be(markdown);
     }
 
     [Fact]
@@ -205,12 +205,12 @@ public sealed class LessonGuideDataTests
         // Act
         var data = new LessonGuideData
         {
-            Title = "Test",
-            BodyMarkDown = "Content"
+            LessonId = "L0001",
+            BodyMarkdown = "Content"
         };
 
         // Assert
-        data.Title.Should().Be("Test");
-        data.BodyMarkDown.Should().Be("Content");
+        data.LessonId.Should().Be("L0001");
+        data.BodyMarkdown.Should().Be("Content");
     }
 }

@@ -13,6 +13,13 @@ namespace SolutionBundler.Core;
 /// Service-Modul für SolutionBundler.Core.
 /// Registriert alle Core-Services und Implementierungen.
 /// </summary>
+/// <remarks>
+/// <para>
+/// <b>DataStore-Initialisierung:</b> DataStores werden NICHT hier initialisiert,
+/// sondern durch <see cref="SolutionBundlerDataStoreInitializer"/> nach dem Build
+/// des Containers. Siehe <see cref="IDataStoreInitializer"/> für Details.
+/// </para>
+/// </remarks>
 public sealed class SolutionBundlerCoreModule : IServiceModule
 {
     public void Register(IServiceCollection services)
@@ -28,25 +35,11 @@ public sealed class SolutionBundlerCoreModule : IServiceModule
             appSubFolder: "SolutionBundler",
             fileNameBase: "projects");
 
-        // ProjectStore als Singleton mit Factory-Pattern
-        // Die Factory stellt sicher, dass der DataStore VOR der ProjectStore-Instanziierung erstellt wird
-        services.AddSingleton<ProjectStore>(sp =>
-        {
-            var provider = sp.GetRequiredService<DataToolKit.Abstractions.DataStores.IDataStoreProvider>();
-            var repositoryFactory = sp.GetRequiredService<DataToolKit.Storage.Repositories.IRepositoryFactory>();
-            
-            // WICHTIG: Erstelle PersistentDataStore über den Provider
-            // Dies registriert den DataStore intern im Provider-Cache
-            var dataStore = provider.GetPersistent<ProjectInfo>(
-                repositoryFactory,
-                isSingleton: true,
-                trackPropertyChanges: false,
-                autoLoad: true);
-            
-            // Jetzt kann ProjectStore sicher erstellt werden
-            // provider.GetDataStore<ProjectInfo>() findet nun den registrierten DataStore
-            return new ProjectStore(provider);
-        });
+        // ProjectStore als Singleton
+        // WICHTIG: Der DataStore für ProjectInfo wird durch SolutionBundlerDataStoreInitializer
+        // nach BuildServiceProvider() erstellt. ProjectStore holt sich den DataStore dann via
+        // provider.GetDataStore<ProjectInfo>()
+        services.AddSingleton<ProjectStore>();
 
         // Core-Implementierungen
         services.AddSingleton<IFileScanner, DefaultFileScanner>();

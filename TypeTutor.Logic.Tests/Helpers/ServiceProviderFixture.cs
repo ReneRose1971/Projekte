@@ -2,6 +2,9 @@ using Common.Bootstrap;
 using Microsoft.Extensions.DependencyInjection;
 using TypeTutor.Logic.DI;
 using DataToolKit.Abstractions.DI;
+using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Storage.Repositories;
+using TypeTutor.Logic.Data;
 
 namespace TypeTutor.Logic.Tests.Helpers;
 
@@ -24,6 +27,31 @@ public sealed class ServiceProviderFixture : IDisposable
             typeof(TypeTutorServiceModule).Assembly);   // TypeTutor-Services
         
         _serviceProvider = services.BuildServiceProvider();
+        
+        // Leere die DataStores für eine saubere Test-Umgebung
+        ClearDataStores();
+    }
+
+    /// <summary>
+    /// Leert alle DataStores, um eine saubere Test-Umgebung zu schaffen.
+    /// </summary>
+    private void ClearDataStores()
+    {
+        try
+        {
+            var provider = _serviceProvider.GetRequiredService<IDataStoreProvider>();
+            var factory = _serviceProvider.GetRequiredService<IRepositoryFactory>();
+            
+            var lessonStore = provider.GetLessonDataStore(factory);
+            var guideStore = provider.GetLessonGuideDataStore(factory);
+            
+            lessonStore.Clear();
+            guideStore.Clear();
+        }
+        catch
+        {
+            // Ignoriere Fehler beim Leeren (z.B. wenn Stores noch nicht existieren)
+        }
     }
 
     /// <summary>
@@ -45,6 +73,8 @@ public sealed class ServiceProviderFixture : IDisposable
 
     public void Dispose()
     {
+        // Leere die DataStores beim Dispose
+        ClearDataStores();
         _serviceProvider.Dispose();
     }
 }

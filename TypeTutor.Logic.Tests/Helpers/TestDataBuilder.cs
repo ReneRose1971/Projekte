@@ -13,6 +13,7 @@ public static class TestDataBuilder
     /// Erstellt eine Standard-LessonData für Tests.
     /// </summary>
     public static LessonData CreateLessonData(
+        string? lessonId = null,
         string? title = null,
         string? content = null,
         string? description = null,
@@ -20,6 +21,7 @@ public static class TestDataBuilder
         string? moduleId = null)
     {
         return new LessonData(
+            lessonId: lessonId ?? "L0001",
             title: title ?? "Test Lesson",
             content: content ?? "test content"
         )
@@ -34,10 +36,12 @@ public static class TestDataBuilder
     /// Erstellt eine LessonData mit mehreren Blöcken.
     /// </summary>
     public static LessonData CreateMultiBlockLessonData(
+        string lessonId,
         string title,
         params string[] blocks)
     {
         return new LessonData(
+            lessonId: lessonId,
             title: title,
             content: string.Join(Environment.NewLine, blocks)
         )
@@ -51,12 +55,12 @@ public static class TestDataBuilder
     /// Erstellt eine Standard-LessonGuideData für Tests.
     /// </summary>
     public static LessonGuideData CreateLessonGuideData(
-        string? title = null,
+        string? lessonId = null,
         string? bodyMarkdown = null)
     {
         return new LessonGuideData(
-            title: title ?? "Test Guide",
-            bodyMarkDown: bodyMarkdown ?? "Test guide markdown content"
+            lessonId: lessonId ?? "L0001",
+            bodyMarkdown: bodyMarkdown ?? "Test guide markdown content"
         );
     }
 

@@ -13,6 +13,11 @@ namespace TypeTutor.Logic.Tests.Data;
 /// Tests für DataStoreWrapper.
 /// Validiert die korrekte Integration mit PersistentDataStores und Collections.
 /// </summary>
+/// <remarks>
+/// Diese Tests verwenden echte JSON-Repositories und müssen sequentiell ausgeführt werden,
+/// um File-Locking-Probleme bei paralleler Testausführung zu vermeiden.
+/// </remarks>
+[Collection("Sequential")]
 public sealed class DataStoreWrapperTests
 {
     [Fact]
@@ -30,6 +35,7 @@ public sealed class DataStoreWrapperTests
         wrapper.Should().NotBeNull();
         wrapper.Lessons.Should().NotBeNull();
         wrapper.LessonGuides.Should().NotBeNull();
+        wrapper.Modules.Should().NotBeNull();
     }
 
     [Fact]
@@ -91,34 +97,6 @@ public sealed class DataStoreWrapperTests
     }
 
     [Fact]
-    public void LessonDataStore_ShouldProvideDirectAccess()
-    {
-        // Arrange
-        using var fixture = new ServiceProviderFixture();
-        var wrapper = fixture.GetRequiredService<DataStoreWrapper>();
-
-        // Act
-        var dataStore = wrapper.LessonDataStore;
-
-        // Assert
-        dataStore.Should().NotBeNull();
-    }
-
-    [Fact]
-    public void LessonGuideDataStore_ShouldProvideDirectAccess()
-    {
-        // Arrange
-        using var fixture = new ServiceProviderFixture();
-        var wrapper = fixture.GetRequiredService<DataStoreWrapper>();
-
-        // Act
-        var dataStore = wrapper.LessonGuideDataStore;
-
-        // Assert
-        dataStore.Should().NotBeNull();
-    }
-
-    [Fact]
     public void Reload_ShouldNotThrowException()
     {
         // Arrange
@@ -137,15 +115,19 @@ public sealed class DataStoreWrapperTests
     {
         // Arrange
         using var fixture = new ServiceProviderFixture();
+        var provider = fixture.GetRequiredService<IDataStoreProvider>();
+        var factory = fixture.GetRequiredService<IRepositoryFactory>();
         var wrapper = fixture.GetRequiredService<DataStoreWrapper>();
+        
+        var lessonDataStore = provider.GetLessonDataStore(factory);
         var initialCount = wrapper.Lessons.Count;
-        var newLesson = TestDataBuilder.CreateLessonData(title: "New Test Lesson");
+        var newLesson = TestDataBuilder.CreateLessonData(lessonId: "L9999", title: "New Test Lesson");
 
         // Act
-        wrapper.LessonDataStore.Add(newLesson);
+        lessonDataStore.Add(newLesson);
 
         // Assert
-        wrapper.Lessons.Should().HaveCount(initialCount + 1);
+        wrapper.Lessons.Should().HaveCount(1);
         wrapper.Lessons.Should().Contain(l => l.Title == "New Test Lesson");
     }
 
@@ -154,16 +136,20 @@ public sealed class DataStoreWrapperTests
     {
         // Arrange
         using var fixture = new ServiceProviderFixture();
+        var provider = fixture.GetRequiredService<IDataStoreProvider>();
+        var factory = fixture.GetRequiredService<IRepositoryFactory>();
         var wrapper = fixture.GetRequiredService<DataStoreWrapper>();
+        
+        var lessonGuideDataStore = provider.GetLessonGuideDataStore(factory);
         var initialCount = wrapper.LessonGuides.Count;
-        var newGuide = TestDataBuilder.CreateLessonGuideData(title: "New Test Guide");
+        var newGuide = TestDataBuilder.CreateLessonGuideData(lessonId: "L9999");
 
         // Act
-        wrapper.LessonGuideDataStore.Add(newGuide);
+        lessonGuideDataStore.Add(newGuide);
 
         // Assert
-        wrapper.LessonGuides.Should().HaveCount(initialCount + 1);
-        wrapper.LessonGuides.Should().Contain(g => g.Title == "New Test Guide");
+        wrapper.LessonGuides.Should().HaveCount(1);
+        wrapper.LessonGuides.Should().Contain(g => g.LessonId == "L9999");
     }
 
     [Fact]
@@ -177,4 +163,9 @@ public sealed class DataStoreWrapperTests
         // Act & Assert
         wrapper1.Should().BeSameAs(wrapper2);
     }
+}
+
+[CollectionDefinition("Sequential", DisableParallelization = true)]
+public class SequentialTestCollection
+{
 }

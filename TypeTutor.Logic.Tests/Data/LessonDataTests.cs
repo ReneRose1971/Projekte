@@ -16,6 +16,7 @@ public sealed class LessonDataTests
     {
         // Arrange & Act
         var data = TestDataBuilder.CreateLessonData(
+            lessonId: "L0001",
             title: "Test Lesson",
             content: "asdf jklö",
             description: "Basic test lesson",
@@ -24,6 +25,7 @@ public sealed class LessonDataTests
 
         // Assert
         data.Should().NotBeNull();
+        data.LessonId.Should().Be("L0001");
         data.Title.Should().Be("Test Lesson");
         data.Content.Should().Be("asdf jklö");
         data.Description.Should().Be("Basic test lesson");
@@ -31,15 +33,15 @@ public sealed class LessonDataTests
     }
 
     [Fact]
-    public void Equality_WithSameTitle_ShouldBeEqual()
+    public void Equality_WithSameLessonId_ShouldBeEqual()
     {
         // Arrange
-        var data1 = new LessonData("Lesson A", "content1") 
+        var data1 = new LessonData("L0001", "Lesson A", "content1") 
         { 
             Description = "desc1", 
             Difficulty = 1 
         };
-        var data2 = new LessonData("Lesson A", "content2") 
+        var data2 = new LessonData("L0001", "Lesson B", "content2") 
         { 
             Description = "desc2", 
             Difficulty = 2 
@@ -52,15 +54,15 @@ public sealed class LessonDataTests
     }
 
     [Fact]
-    public void Equality_WithDifferentTitle_ShouldNotBeEqual()
+    public void Equality_WithDifferentLessonId_ShouldNotBeEqual()
     {
         // Arrange
-        var data1 = new LessonData("Lesson A", "content") 
+        var data1 = new LessonData("L0001", "Lesson A", "content") 
         { 
             Description = "desc", 
             Difficulty = 1 
         };
-        var data2 = new LessonData("Lesson B", "content") 
+        var data2 = new LessonData("L0002", "Lesson B", "content") 
         { 
             Description = "desc", 
             Difficulty = 1 
@@ -73,15 +75,15 @@ public sealed class LessonDataTests
     }
 
     [Fact]
-    public void GetHashCode_WithSameTitle_ShouldReturnSameHash()
+    public void GetHashCode_WithSameLessonId_ShouldReturnSameHash()
     {
         // Arrange
-        var data1 = new LessonData("Lesson A", "content1") 
+        var data1 = new LessonData("L0001", "Lesson A", "content1") 
         { 
             Description = "desc1", 
             Difficulty = 1 
         };
-        var data2 = new LessonData("Lesson A", "content2") 
+        var data2 = new LessonData("L0001", "Lesson B", "content2") 
         { 
             Description = "desc2", 
             Difficulty = 2 
@@ -101,12 +103,12 @@ public sealed class LessonDataTests
     public void Record_Equality_WithIdenticalValues_ShouldBeEqual()
     {
         // Arrange
-        var data1 = new LessonData("Test", "content") 
+        var data1 = new LessonData("L0001", "Test", "content") 
         { 
             Description = "desc", 
             Difficulty = 1 
         };
-        var data2 = new LessonData("Test", "content") 
+        var data2 = new LessonData("L0001", "Test", "content") 
         { 
             Description = "desc", 
             Difficulty = 1 
@@ -122,6 +124,7 @@ public sealed class LessonDataTests
     {
         // Arrange
         var original = TestDataBuilder.CreateLessonData(
+            lessonId: "L0001",
             title: "Original",
             difficulty: 1
         );
@@ -136,16 +139,17 @@ public sealed class LessonDataTests
     }
 
     [Theory]
-    [InlineData("", "content", "desc", 1)]
-    [InlineData("Title", "", "desc", 1)]
+    [InlineData("L0001", "", "content", "desc", 1)]
+    [InlineData("L0001", "Title", "", "desc", 1)]
     public void Constructor_WithValidEmptyStrings_ShouldSucceed(
+        string lessonId,
         string title,
         string content,
         string description,
         int difficulty)
     {
         // Act
-        var data = new LessonData(title, content)
+        var data = new LessonData(lessonId, title, content)
         {
             Description = description,
             Difficulty = difficulty
@@ -153,6 +157,7 @@ public sealed class LessonDataTests
 
         // Assert
         data.Should().NotBeNull();
+        data.LessonId.Should().Be(lessonId);
         data.Title.Should().Be(title);
         data.Content.Should().Be(content);
     }
@@ -164,7 +169,7 @@ public sealed class LessonDataTests
         var content = "Line 1\nLine 2\nLine 3";
 
         // Act
-        var data = new LessonData("Test", content) { Description = "desc", Difficulty = 1 };
+        var data = new LessonData("L0001", "Test", content) { Description = "desc", Difficulty = 1 };
 
         // Assert
         data.Content.Should().Contain("\n");
@@ -175,7 +180,7 @@ public sealed class LessonDataTests
     public void Difficulty_ShouldAllowPositiveValues()
     {
         // Arrange & Act
-        var data = new LessonData("Test", "content") { Description = "desc", Difficulty = 5 };
+        var data = new LessonData("L0001", "Test", "content") { Description = "desc", Difficulty = 5 };
 
         // Assert
         data.Difficulty.Should().Be(5);
@@ -185,7 +190,7 @@ public sealed class LessonDataTests
     public void Difficulty_ShouldAllowZero()
     {
         // Arrange & Act
-        var data = new LessonData("Test", "content") { Description = "desc", Difficulty = 0 };
+        var data = new LessonData("L0001", "Test", "content") { Description = "desc", Difficulty = 0 };
 
         // Assert
         data.Difficulty.Should().Be(0);
@@ -195,7 +200,7 @@ public sealed class LessonDataTests
     public void ToString_ShouldReturnReadableRepresentation()
     {
         // Arrange
-        var data = TestDataBuilder.CreateLessonData(title: "My Lesson");
+        var data = TestDataBuilder.CreateLessonData(lessonId: "L0001", title: "My Lesson");
 
         // Act
         var result = data.ToString();

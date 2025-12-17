@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Common.Bootstrap;
 using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Abstractions.Repositories;
 using DataToolKit.Storage.Persistence;
@@ -63,6 +64,7 @@ namespace DataToolKit.Storage.DataStores
         private readonly IRepositoryBase<T> _repository;
         private readonly IPersistenceStrategy<T> _strategy;
         private readonly PropertyChangedBinder<T> _propBinder;
+        private readonly DisposableCollection _disposables = new();
         private bool _disposed;
 
         /// <summary>
@@ -80,7 +82,13 @@ namespace DataToolKit.Storage.DataStores
         /// </param>
         /// <exception cref="ArgumentNullException">Wenn <paramref name="repository"/> null ist.</exception>
         /// <remarks>
+        /// <para>
         /// Nach der Konstruktion sollte <see cref="Load"/> aufgerufen werden, um Daten zu laden.
+        /// </para>
+        /// <para>
+        /// <b>Ressourcen-Management:</b> Verwendet <see cref="DisposableCollection"/> für automatisches
+        /// LIFO-Dispose der verwalteten Ressourcen (PropertyChangedBinder → PersistenceStrategy).
+        /// </para>
         /// </remarks>
         public PersistentDataStore(
             IRepositoryBase<T> repository,
@@ -95,6 +103,10 @@ namespace DataToolKit.Storage.DataStores
             _propBinder = new PropertyChangedBinder<T>(
                 trackPropertyChanges,
                 entity => _strategy.OnEntityChanged(entity));
+
+            // Ressourcen in DisposableCollection registrieren (LIFO-Reihenfolge)
+            _disposables.Add(_propBinder);
+            _disposables.Add(_strategy);
         }
 
         /// <summary>
@@ -210,13 +222,26 @@ namespace DataToolKit.Storage.DataStores
         /// <summary>
         /// Gibt Ressourcen frei und trennt alle PropertyChanged-Bindings.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>Dispose-Reihenfolge:</b> Ressourcen werden automatisch in LIFO-Reihenfolge entsorgt:
+        /// </para>
+        /// <list type="number">
+        /// <item><see cref="PropertyChangedBinder{T}"/> (zuletzt hinzugefügt → zuerst entsorgt)</item>
+        /// <item><see cref="IPersistenceStrategy{T}"/> (zuerst hinzugefügt → zuletzt entsorgt)</item>
+        /// </list>
+        /// <para>
+        /// <b>Exception-Handling:</b> Falls beim Entsorgen einer Ressource ein Fehler auftritt,
+        /// werden die verbleibenden Ressourcen trotzdem entsorgt und alle Exceptions als
+        /// <see cref="AggregateException"/> gesammelt und geworfen.
+        /// </para>
+        /// </remarks>
         public void Dispose()
         {
             if (_disposed) return;
             _disposed = true;
 
-            _propBinder.Dispose();
-            _strategy.Dispose();
+            _disposables.Dispose();
         }
     }
 }

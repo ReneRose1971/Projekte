@@ -4,7 +4,6 @@ using System.Linq;
 using System.Windows;
 using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Storage.DataStores;
-using DataToolKit.Storage.Repositories;
 
 namespace CustomWPFControls.Services;
 
@@ -22,15 +21,53 @@ public sealed class WindowLayoutService : IDisposable
     /// Erstellt einen WindowLayoutService.
     /// </summary>
     /// <param name="provider">Provider zum Abrufen des DataStores.</param>
-    /// <param name="repositoryFactory">Factory zum Auflösen des Repositories.</param>
+    /// <exception cref="ArgumentNullException">Wenn provider null ist.</exception>
+    /// <exception cref="InvalidOperationException">
+    /// Wenn der DataStore für <see cref="WindowLayoutData"/> nicht initialisiert wurde.
+    /// Stellen Sie sicher, dass <see cref="CustomWPFControlsDataStoreInitializer"/> 
+    /// vor der Erstellung des WindowLayoutService ausgeführt wurde.
+    /// </exception>
+    /// <remarks>
+    /// <para>
+    /// <b>Wichtig:</b> Der DataStore für <see cref="WindowLayoutData"/> muss vorher
+    /// durch <see cref="CustomWPFControlsDataStoreInitializer"/> erstellt worden sein.
+    /// Dies geschieht automatisch durch <c>InitializeDataStores()</c> nach dem Build
+    /// des DI-Containers.
+    /// </para>
+    /// </remarks>
+    public WindowLayoutService(IDataStoreProvider provider)
+    {
+        if (provider == null) throw new ArgumentNullException(nameof(provider));
+
+        // DataStore über Provider abrufen (muss bereits durch Initializer erstellt sein)
+        try
+        {
+            _store = (PersistentDataStore<WindowLayoutData>)provider.GetDataStore<WindowLayoutData>();
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new InvalidOperationException(
+                $"WindowLayoutData DataStore wurde nicht initialisiert. " +
+                $"Stellen Sie sicher, dass InitializeDataStores() nach BuildServiceProvider() aufgerufen wurde. " +
+                $"Siehe CustomWPFControlsDataStoreInitializer für Details.", 
+                ex);
+        }
+    }
+
+    /// <summary>
+    /// Veralteter Konstruktor für Rückwärtskompatibilität.
+    /// </summary>
+    /// <param name="provider">Provider zum Abrufen des DataStores.</param>
+    /// <param name="repositoryFactory">Repository Factory (wird für Rückwärtskompatibilität verwendet).</param>
+    [Obsolete("Verwenden Sie den Konstruktor mit nur IDataStoreProvider. DataStores sollten durch CustomWPFControlsDataStoreInitializer initialisiert werden.")]
     public WindowLayoutService(
         IDataStoreProvider provider,
-        IRepositoryFactory repositoryFactory)
+        DataToolKit.Storage.Repositories.IRepositoryFactory repositoryFactory)
     {
         if (provider == null) throw new ArgumentNullException(nameof(provider));
         if (repositoryFactory == null) throw new ArgumentNullException(nameof(repositoryFactory));
 
-        // DataStore über Provider abrufen (Singleton mit AutoLoad)
+        // Alte Implementierung: Erstelle DataStore direkt
         _store = provider.GetPersistent<WindowLayoutData>(
             repositoryFactory,
             isSingleton: true,

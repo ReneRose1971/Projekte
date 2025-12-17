@@ -16,15 +16,25 @@ namespace TypeTutor.Logic.Data;
 /// - JSON-Export für Backup/Transfer
 /// - Persistierung über DataToolKit JSON-Repository
 /// 
-/// Verknüpfung zu LessonGuideData:
-/// - Jede Lesson wird einem LessonGuide über das Feld ModuleId zugeordnet
-/// - ModuleId entspricht dem Title-Feld in LessonGuideData
+/// Verknüpfung zu ModuleData:
+/// - Jede Lesson wird einem Modul über das Feld ModuleId zugeordnet
+/// - ModuleId entspricht dem ModuleId-Feld in ModuleData
+/// - LessonId ist der eindeutige, stabile Identifier der Lesson
 /// </summary>
 public sealed record LessonData
 {
     /// <summary>
-    /// Titel der Lektion (eindeutiger Identifier).
-    /// Dient als Primärschlüssel für Repository-Operationen.
+    /// Eindeutiger, stabiler Identifier der Lektion (z. B. "L0001", "L0002").
+    /// Dient als Primärschlüssel für Repository-Operationen und Referenzierung.
+    /// 
+    /// Dieser Identifier ist stabil und ändert sich nicht, auch wenn
+    /// der Title bearbeitet wird.
+    /// </summary>
+    public string LessonId { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Titel der Lektion (Anzeigename, frei editierbar).
+    /// Wird dem Benutzer im UI angezeigt.
     /// </summary>
     public string Title { get; init; } = string.Empty;
 
@@ -46,11 +56,11 @@ public sealed record LessonData
     /// Tags/Kategorien für Filterung und Gruppierung.
     /// Beispiele: "Grundlagen", "Home Row", "Deutsch"
     /// </summary>
-    public List<string> Tags { get; init; } = new();
+    public IReadOnlyList<string> Tags { get; init; } = Array.Empty<string>();
 
     /// <summary>
-    /// Modul-ID zur Zuordnung zu einem übergeordneten LessonGuide.
-    /// Verknüpfung: LessonData.ModuleId == LessonGuideData.Title
+    /// Modul-ID zur Zuordnung zu einem übergeordneten Modul.
+    /// Verknüpfung: LessonData.ModuleId == ModuleData.ModuleId
     /// Beispiele: "M01", "M02", "M03" … "M07"
     /// </summary>
     public string ModuleId { get; init; } = string.Empty;
@@ -69,32 +79,13 @@ public sealed record LessonData
     /// <summary>
     /// Konstruktor für programmatische Erstellung.
     /// </summary>
+    /// <param name="lessonId">Eindeutiger Identifier der Lektion (erforderlich).</param>
     /// <param name="title">Titel der Lektion (erforderlich).</param>
     /// <param name="content">Inhalt der Lektion (erforderlich).</param>
-    public LessonData(string title, string content)
+    public LessonData(string lessonId, string title, string content)
     {
+        LessonId = lessonId ?? throw new ArgumentNullException(nameof(lessonId));
         Title = title ?? throw new ArgumentNullException(nameof(title));
         Content = content ?? throw new ArgumentNullException(nameof(content));
     }
-}
-
-/// <summary>
-/// Root-Container für JSON-Dateien mit mehreren Lessons.
-/// Struktur: { "Lessons": [ {...}, {...} ] }
-/// 
-/// Verwendung für Import/Export:
-/// - TypeTutor_Import_LessonData.json
-/// - Batch-Import von Lessons
-/// </summary>
-public sealed record LessonDataContainer
-{
-    /// <summary>
-    /// Liste aller Lessons im Container.
-    /// </summary>
-    public List<LessonData> Lessons { get; init; } = new();
-
-    /// <summary>
-    /// Parameterloser Konstruktor für JSON-Deserializer.
-    /// </summary>
-    public LessonDataContainer() { }
 }

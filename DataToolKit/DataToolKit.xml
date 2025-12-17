@@ -1086,12 +1086,16 @@
         <member name="T:DataToolKit.Storage.DataStores.DataStoreProvider">
             <summary>
             Thread-sicherer Provider zur Verwaltung von DataStore-Instanzen.
-            Verwaltet Singleton-Instanzen in einem Dictionary pro Typ UND Store-Art.
+            Verwaltet Singleton-Instanzen in einem Dictionary pro Typ T.
             </summary>
             <remarks>
             <para>
             <b>Thread-Safety:</b> Alle Operationen sind durch <see cref="T:System.Threading.SemaphoreSlim"/> geschützt.
             Konkurrierender Zugriff auf Singleton-Instanzen ist sicher.
+            </para>
+            <para>
+            <b>Singleton-Garantie:</b> Pro Typ T existiert anwendungsweit maximal eine DataStore-Instanz.
+            Egal ob InMemory oder Persistent - der erste Aufruf legt die Art fest.
             </para>
             <para>
             <b>AutoLoad:</b> PersistentDataStores können beim Abrufen automatisch geladen werden.
@@ -1100,11 +1104,7 @@
             <para>
             <b>Repository-Auswahl:</b> Automatische Erkennung basierend auf Typ:
             - <see cref="T:DataToolKit.Abstractions.Repositories.EntityBase"/>-Typen ? LiteDB-Repository (granulare Operationen)
-            - Nur <see cref="T:DataToolKit.Abstractions.Repositories.IEntity"/>-Typen ? JSON-Repository (atomares WriteAll)
-            </para>
-            <para>
-            <b>Singleton-Keys:</b> Verwendet separate Keys für InMemory vs. Persistent Stores,
-            um Kollisionen zu vermeiden.
+            - POCOs ? JSON-Repository (atomares WriteAll)
             </para>
             <para>
             <b>Dispose:</b> Beim Entfernen von Singletons wird automatisch <c>Dispose()</c> aufgerufen,
@@ -1119,19 +1119,14 @@
             <param name="factory">Factory zur Erzeugung von DataStore-Instanzen.</param>
             <exception cref="T:System.ArgumentNullException">Wenn <paramref name="factory"/> null ist.</exception>
         </member>
-        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetInMemoryKey``1">
+        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetKey``1">
             <summary>
-            Erzeugt einen eindeutigen Cache-Key für den Store-Typ.
-            </summary>
-        </member>
-        <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetPersistentKey``1">
-            <summary>
-            Erzeugt einen eindeutigen Cache-Key für den Store-Typ.
+            Erzeugt einen eindeutigen Cache-Key für den Typ T.
             </summary>
         </member>
         <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetDataStore``1">
             <summary>
-            Gibt einen bereits registrierten DataStore zurück, unabhängig davon ob InMemory oder Persistent.
+            Gibt einen bereits registrierten DataStore zurück.
             </summary>
             <typeparam name="T">Der Entitätstyp des DataStores.</typeparam>
             <returns>Der bereits existierende DataStore.</returns>
@@ -1142,7 +1137,7 @@
             <para>
             Diese Methode erstellt <b>keinen</b> neuen DataStore, sondern gibt nur einen bereits
             existierenden zurück. Sie ist nützlich für Komponenten, die einen DataStore verwenden möchten,
-            ohne zu wissen ob er als InMemory oder Persistent erstellt wurde.
+            ohne zu wissen wie er erstellt wurde.
             </para>
             <para>
             <b>Verwendung:</b>
@@ -1154,15 +1149,11 @@
             // Später in einer Komponente:
             var store = provider.GetDataStore&lt;Customer&gt;();  // Gibt den gleichen Store zurück
             </code>
-            <para>
-            <b>Fehlerbehandlung:</b> Wenn kein DataStore gefunden wird, enthält die Exception eine
-            hilfreiche Fehlermeldung mit Anweisungen, wie der Store vorher erstellt werden muss.
-            </para>
             </remarks>
         </member>
         <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetDataStoreAsync``1">
             <summary>
-            Gibt einen bereits registrierten DataStore asynchron zurück, unabhängig davon ob InMemory oder Persistent.
+            Gibt einen bereits registrierten DataStore asynchron zurück.
             </summary>
             <typeparam name="T">Der Entitätstyp des DataStores.</typeparam>
             <returns>Der bereits existierende DataStore.</returns>
@@ -1177,11 +1168,30 @@
             <summary>
             Gibt einen InMemoryDataStore zurück (thread-safe).
             </summary>
+            <remarks>
+            <para>
+            <b>Singleton-Verhalten:</b> Wenn <paramref name="isSingleton"/> = <c>true</c> und bereits
+            ein Store für <typeparamref name="T"/> existiert, wird dieser zurückgegeben wenn er
+            vom Typ <see cref="T:DataToolKit.Storage.DataStores.InMemoryDataStore`1"/> ist (oder davon erbt, wie <see cref="T:DataToolKit.Storage.DataStores.PersistentDataStore`1"/>).
+            </para>
+            <para>
+            <b>Wichtig:</b> Wenn bereits ein <see cref="T:DataToolKit.Storage.DataStores.PersistentDataStore`1"/> existiert, wird dieser
+            zurückgegeben (da PersistentDataStore von InMemoryDataStore erbt). Verwenden Sie
+            <see cref="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetDataStore``1"/> wenn Sie typen-agnostisch arbeiten möchten.
+            </para>
+            </remarks>
         </member>
         <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetInMemoryAsync``1(System.Boolean,System.Collections.Generic.IEqualityComparer{``0})">
             <summary>
             Gibt einen InMemoryDataStore asynchron zurück (thread-safe).
             </summary>
+            <remarks>
+            <para>
+            <b>Wichtig:</b> Wenn bereits ein <see cref="T:DataToolKit.Storage.DataStores.PersistentDataStore`1"/> existiert, wird dieser
+            zurückgegeben (da PersistentDataStore von InMemoryDataStore erbt). Verwenden Sie
+            <see cref="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetDataStoreAsync``1"/> wenn Sie typen-agnostisch arbeiten möchten.
+            </para>
+            </remarks>
         </member>
         <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetPersistent``1(DataToolKit.Storage.Repositories.IRepositoryFactory,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
@@ -1199,7 +1209,15 @@
             <b>AutoLoad:</b> Wenn <c>true</c>, werden Daten sofort aus dem Repository geladen.
             Bei <c>false</c> muss <c>store.Load()</c> manuell aufgerufen werden.
             </para>
+            <para>
+            <b>Singleton-Verhalten:</b> Wenn <paramref name="isSingleton"/> = <c>true</c> und bereits
+            ein Store für <typeparamref name="T"/> existiert, wird eine Exception geworfen falls
+            der existierende Store nicht vom Typ <see cref="T:DataToolKit.Storage.DataStores.PersistentDataStore`1"/> ist.
+            </para>
             </remarks>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn bereits ein InMemoryDataStore für <typeparamref name="T"/> registriert ist.
+            </exception>
         </member>
         <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetPersistentAsync``1(DataToolKit.Storage.Repositories.IRepositoryFactory,System.Boolean,System.Boolean,System.Boolean)">
             <summary>
@@ -1208,6 +1226,9 @@
             <remarks>
             Asynchrone Variante von <see cref="M:DataToolKit.Storage.DataStores.DataStoreProvider.GetPersistent``1(DataToolKit.Storage.Repositories.IRepositoryFactory,System.Boolean,System.Boolean,System.Boolean)"/>. Siehe dort für Details zur Repository-Auswahl.
             </remarks>
+            <exception cref="T:System.InvalidOperationException">
+            Wenn bereits ein InMemoryDataStore für <typeparamref name="T"/> registriert ist.
+            </exception>
         </member>
         <member name="M:DataToolKit.Storage.DataStores.DataStoreProvider.ResolveRepository``1(DataToolKit.Storage.Repositories.IRepositoryFactory)">
             <summary>
@@ -1527,7 +1548,13 @@
             </param>
             <exception cref="T:System.ArgumentNullException">Wenn <paramref name="repository"/> null ist.</exception>
             <remarks>
+            <para>
             Nach der Konstruktion sollte <see cref="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.Load"/> aufgerufen werden, um Daten zu laden.
+            </para>
+            <para>
+            <b>Ressourcen-Management:</b> Verwendet <see cref="T:Common.Bootstrap.DisposableCollection"/> für automatisches
+            LIFO-Dispose der verwalteten Ressourcen (PropertyChangedBinder → PersistenceStrategy).
+            </para>
             </remarks>
         </member>
         <member name="M:DataToolKit.Storage.DataStores.PersistentDataStore`1.Load">
@@ -1588,6 +1615,20 @@
             <summary>
             Gibt Ressourcen frei und trennt alle PropertyChanged-Bindings.
             </summary>
+            <remarks>
+            <para>
+            <b>Dispose-Reihenfolge:</b> Ressourcen werden automatisch in LIFO-Reihenfolge entsorgt:
+            </para>
+            <list type="number">
+            <item><see cref="T:DataToolKit.Storage.Persistence.PropertyChangedBinder`1"/> (zuletzt hinzugefügt → zuerst entsorgt)</item>
+            <item><see cref="T:DataToolKit.Abstractions.DataStores.IPersistenceStrategy`1"/> (zuerst hinzugefügt → zuletzt entsorgt)</item>
+            </list>
+            <para>
+            <b>Exception-Handling:</b> Falls beim Entsorgen einer Ressource ein Fehler auftritt,
+            werden die verbleibenden Ressourcen trotzdem entsorgt und alle Exceptions als
+            <see cref="T:System.AggregateException"/> gesammelt und geworfen.
+            </para>
+            </remarks>
         </member>
         <member name="T:DataToolKit.Storage.Persistence.PropertyChangedBinder`1">
             <summary>

@@ -11,12 +11,16 @@ namespace DataToolKit.Storage.DataStores
 {
     /// <summary>
     /// Thread-sicherer Provider zur Verwaltung von DataStore-Instanzen.
-    /// Verwaltet Singleton-Instanzen in einem Dictionary pro Typ UND Store-Art.
+    /// Verwaltet Singleton-Instanzen in einem Dictionary pro Typ T.
     /// </summary>
     /// <remarks>
     /// <para>
     /// <b>Thread-Safety:</b> Alle Operationen sind durch <see cref="SemaphoreSlim"/> geschützt.
     /// Konkurrierender Zugriff auf Singleton-Instanzen ist sicher.
+    /// </para>
+    /// <para>
+    /// <b>Singleton-Garantie:</b> Pro Typ T existiert anwendungsweit maximal eine DataStore-Instanz.
+    /// Egal ob InMemory oder Persistent - der erste Aufruf legt die Art fest.
     /// </para>
     /// <para>
     /// <b>AutoLoad:</b> PersistentDataStores können beim Abrufen automatisch geladen werden.
@@ -25,11 +29,7 @@ namespace DataToolKit.Storage.DataStores
     /// <para>
     /// <b>Repository-Auswahl:</b> Automatische Erkennung basierend auf Typ:
     /// - <see cref="EntityBase"/>-Typen ? LiteDB-Repository (granulare Operationen)
-    /// - Nur <see cref="IEntity"/>-Typen ? JSON-Repository (atomares WriteAll)
-    /// </para>
-    /// <para>
-    /// <b>Singleton-Keys:</b> Verwendet separate Keys für InMemory vs. Persistent Stores,
-    /// um Kollisionen zu vermeiden.
+    /// - POCOs ? JSON-Repository (atomares WriteAll)
     /// </para>
     /// <para>
     /// <b>Dispose:</b> Beim Entfernen von Singletons wird automatisch <c>Dispose()</c> aufgerufen,
@@ -54,17 +54,12 @@ namespace DataToolKit.Storage.DataStores
         }
 
         /// <summary>
-        /// Erzeugt einen eindeutigen Cache-Key für den Store-Typ.
+        /// Erzeugt einen eindeutigen Cache-Key für den Typ T.
         /// </summary>
-        private static string GetInMemoryKey<T>() => $"InMemory_{typeof(T).FullName}";
-        
-        /// <summary>
-        /// Erzeugt einen eindeutigen Cache-Key für den Store-Typ.
-        /// </summary>
-        private static string GetPersistentKey<T>() => $"Persistent_{typeof(T).FullName}";
+        private static string GetKey<T>() => typeof(T).FullName ?? typeof(T).Name;
 
         /// <summary>
-        /// Gibt einen bereits registrierten DataStore zurück, unabhängig davon ob InMemory oder Persistent.
+        /// Gibt einen bereits registrierten DataStore zurück.
         /// </summary>
         /// <typeparam name="T">Der Entitätstyp des DataStores.</typeparam>
         /// <returns>Der bereits existierende DataStore.</returns>
@@ -75,7 +70,7 @@ namespace DataToolKit.Storage.DataStores
         /// <para>
         /// Diese Methode erstellt <b>keinen</b> neuen DataStore, sondern gibt nur einen bereits
         /// existierenden zurück. Sie ist nützlich für Komponenten, die einen DataStore verwenden möchten,
-        /// ohne zu wissen ob er als InMemory oder Persistent erstellt wurde.
+        /// ohne zu wissen wie er erstellt wurde.
         /// </para>
         /// <para>
         /// <b>Verwendung:</b>
@@ -87,31 +82,19 @@ namespace DataToolKit.Storage.DataStores
         /// // Später in einer Komponente:
         /// var store = provider.GetDataStore&lt;Customer&gt;();  // Gibt den gleichen Store zurück
         /// </code>
-        /// <para>
-        /// <b>Fehlerbehandlung:</b> Wenn kein DataStore gefunden wird, enthält die Exception eine
-        /// hilfreiche Fehlermeldung mit Anweisungen, wie der Store vorher erstellt werden muss.
-        /// </para>
         /// </remarks>
         public IDataStore<T> GetDataStore<T>() where T : class
         {
             _lock.Wait();
             try
             {
-                var inMemoryKey = GetInMemoryKey<T>();
-                var persistentKey = GetPersistentKey<T>();
+                var key = GetKey<T>();
 
-                // Prüfe zuerst Persistent, dann InMemory (Persistent ist häufiger)
-                if (_singletons.TryGetValue(persistentKey, out var persistentStore))
+                if (_singletons.TryGetValue(key, out var store))
                 {
-                    return (IDataStore<T>)persistentStore;
+                    return (IDataStore<T>)store;
                 }
 
-                if (_singletons.TryGetValue(inMemoryKey, out var inMemoryStore))
-                {
-                    return (IDataStore<T>)inMemoryStore;
-                }
-
-                // Kein Store gefunden - hilfreiche Fehlermeldung
                 var typeName = typeof(T).Name;
                 var typeFullName = typeof(T).FullName;
                 
@@ -132,7 +115,7 @@ namespace DataToolKit.Storage.DataStores
         }
 
         /// <summary>
-        /// Gibt einen bereits registrierten DataStore asynchron zurück, unabhängig davon ob InMemory oder Persistent.
+        /// Gibt einen bereits registrierten DataStore asynchron zurück.
         /// </summary>
         /// <typeparam name="T">Der Entitätstyp des DataStores.</typeparam>
         /// <returns>Der bereits existierende DataStore.</returns>
@@ -147,21 +130,13 @@ namespace DataToolKit.Storage.DataStores
             await _lock.WaitAsync();
             try
             {
-                var inMemoryKey = GetInMemoryKey<T>();
-                var persistentKey = GetPersistentKey<T>();
+                var key = GetKey<T>();
 
-                // Prüfe zuerst Persistent, dann InMemory (Persistent ist häufiger)
-                if (_singletons.TryGetValue(persistentKey, out var persistentStore))
+                if (_singletons.TryGetValue(key, out var store))
                 {
-                    return (IDataStore<T>)persistentStore;
+                    return (IDataStore<T>)store;
                 }
 
-                if (_singletons.TryGetValue(inMemoryKey, out var inMemoryStore))
-                {
-                    return (IDataStore<T>)inMemoryStore;
-                }
-
-                // Kein Store gefunden - hilfreiche Fehlermeldung
                 var typeName = typeof(T).Name;
                 var typeFullName = typeof(T).FullName;
                 
@@ -184,6 +159,18 @@ namespace DataToolKit.Storage.DataStores
         /// <summary>
         /// Gibt einen InMemoryDataStore zurück (thread-safe).
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>Singleton-Verhalten:</b> Wenn <paramref name="isSingleton"/> = <c>true</c> und bereits
+        /// ein Store für <typeparamref name="T"/> existiert, wird dieser zurückgegeben wenn er
+        /// vom Typ <see cref="InMemoryDataStore{T}"/> ist (oder davon erbt, wie <see cref="PersistentDataStore{T}"/>).
+        /// </para>
+        /// <para>
+        /// <b>Wichtig:</b> Wenn bereits ein <see cref="PersistentDataStore{T}"/> existiert, wird dieser
+        /// zurückgegeben (da PersistentDataStore von InMemoryDataStore erbt). Verwenden Sie
+        /// <see cref="GetDataStore{T}"/> wenn Sie typen-agnostisch arbeiten möchten.
+        /// </para>
+        /// </remarks>
         public InMemoryDataStore<T> GetInMemory<T>(
             bool isSingleton = true,
             IEqualityComparer<T>? comparer = null)
@@ -194,15 +181,24 @@ namespace DataToolKit.Storage.DataStores
                 return _factory.CreateInMemoryStore<T>(comparer);
             }
 
-            // Thread-safe Singleton-Zugriff
             _lock.Wait();
             try
             {
-                var key = GetInMemoryKey<T>();
+                var key = GetKey<T>();
                 
                 if (_singletons.TryGetValue(key, out var existing))
                 {
-                    return (InMemoryDataStore<T>)existing;
+                    // PersistentDataStore erbt von InMemoryDataStore, also ist der Cast gültig
+                    if (existing is InMemoryDataStore<T> inMemoryStore)
+                    {
+                        return inMemoryStore;
+                    }
+                    
+                    // Sollte nicht passieren, aber zur Sicherheit
+                    throw new InvalidOperationException(
+                        $"Ein DataStore für Typ '{typeof(T).Name}' existiert bereits, aber als '{existing.GetType().Name}'.\n" +
+                        $"Pro Typ kann nur eine Singleton-Instanz existieren.\n" +
+                        $"Verwenden Sie GetDataStore<{typeof(T).Name}>() um den existierenden Store zu erhalten.");
                 }
 
                 var store = _factory.CreateInMemoryStore<T>(comparer);
@@ -218,6 +214,13 @@ namespace DataToolKit.Storage.DataStores
         /// <summary>
         /// Gibt einen InMemoryDataStore asynchron zurück (thread-safe).
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// <b>Wichtig:</b> Wenn bereits ein <see cref="PersistentDataStore{T}"/> existiert, wird dieser
+        /// zurückgegeben (da PersistentDataStore von InMemoryDataStore erbt). Verwenden Sie
+        /// <see cref="GetDataStoreAsync{T}"/> wenn Sie typen-agnostisch arbeiten möchten.
+        /// </para>
+        /// </remarks>
         public async Task<InMemoryDataStore<T>> GetInMemoryAsync<T>(
             bool isSingleton = true,
             IEqualityComparer<T>? comparer = null)
@@ -228,15 +231,22 @@ namespace DataToolKit.Storage.DataStores
                 return await Task.Run(() => _factory.CreateInMemoryStore<T>(comparer));
             }
 
-            // Thread-safe Singleton-Zugriff
             await _lock.WaitAsync();
             try
             {
-                var key = GetInMemoryKey<T>();
+                var key = GetKey<T>();
                 
                 if (_singletons.TryGetValue(key, out var existing))
                 {
-                    return (InMemoryDataStore<T>)existing;
+                    if (existing is InMemoryDataStore<T> inMemoryStore)
+                    {
+                        return inMemoryStore;
+                    }
+                    
+                    throw new InvalidOperationException(
+                        $"Ein DataStore für Typ '{typeof(T).Name}' existiert bereits, aber als '{existing.GetType().Name}'.\n" +
+                        $"Pro Typ kann nur eine Singleton-Instanz existieren.\n" +
+                        $"Verwenden Sie GetDataStoreAsync<{typeof(T).Name}>() um den existierenden Store zu erhalten.");
                 }
 
                 var store = await Task.Run(() => _factory.CreateInMemoryStore<T>(comparer));
@@ -264,7 +274,15 @@ namespace DataToolKit.Storage.DataStores
         /// <b>AutoLoad:</b> Wenn <c>true</c>, werden Daten sofort aus dem Repository geladen.
         /// Bei <c>false</c> muss <c>store.Load()</c> manuell aufgerufen werden.
         /// </para>
+        /// <para>
+        /// <b>Singleton-Verhalten:</b> Wenn <paramref name="isSingleton"/> = <c>true</c> und bereits
+        /// ein Store für <typeparamref name="T"/> existiert, wird eine Exception geworfen falls
+        /// der existierende Store nicht vom Typ <see cref="PersistentDataStore{T}"/> ist.
+        /// </para>
         /// </remarks>
+        /// <exception cref="InvalidOperationException">
+        /// Wenn bereits ein InMemoryDataStore für <typeparamref name="T"/> registriert ist.
+        /// </exception>
         public PersistentDataStore<T> GetPersistent<T>(
             IRepositoryFactory repositoryFactory,
             bool isSingleton = true,
@@ -277,7 +295,6 @@ namespace DataToolKit.Storage.DataStores
 
             if (!isSingleton)
             {
-                // Nicht-Singleton: Erstellen und optional laden
                 var repository = ResolveRepository<T>(repositoryFactory);
                 var store = _factory.CreatePersistentStore<T>(repository, trackPropertyChanges);
                 
@@ -289,22 +306,27 @@ namespace DataToolKit.Storage.DataStores
                 return store;
             }
 
-            // Thread-safe Singleton-Zugriff
             _lock.Wait();
             try
             {
-                var key = GetPersistentKey<T>();
+                var key = GetKey<T>();
                 
                 if (_singletons.TryGetValue(key, out var existing))
                 {
-                    return (PersistentDataStore<T>)existing;
+                    if (existing is PersistentDataStore<T> persistentStore)
+                    {
+                        return persistentStore;
+                    }
+                    
+                    throw new InvalidOperationException(
+                        $"Ein DataStore für Typ '{typeof(T).Name}' existiert bereits, aber als '{existing.GetType().Name}'.\n" +
+                        $"Pro Typ kann nur eine Singleton-Instanz existieren (entweder InMemory ODER Persistent).\n" +
+                        $"Verwenden Sie GetDataStore<{typeof(T).Name}>() um den existierenden Store zu erhalten.");
                 }
 
-                // Repository über Factory auflösen (automatische JSON/LiteDB-Erkennung)
                 var repo = ResolveRepository<T>(repositoryFactory);
                 var newStore = _factory.CreatePersistentStore<T>(repo, trackPropertyChanges);
                 
-                // AutoLoad im Provider (nicht in Factory!)
                 if (autoLoad)
                 {
                     newStore.Load();
@@ -325,6 +347,9 @@ namespace DataToolKit.Storage.DataStores
         /// <remarks>
         /// Asynchrone Variante von <see cref="GetPersistent{T}"/>. Siehe dort für Details zur Repository-Auswahl.
         /// </remarks>
+        /// <exception cref="InvalidOperationException">
+        /// Wenn bereits ein InMemoryDataStore für <typeparamref name="T"/> registriert ist.
+        /// </exception>
         public async Task<PersistentDataStore<T>> GetPersistentAsync<T>(
             IRepositoryFactory repositoryFactory,
             bool isSingleton = true,
@@ -337,7 +362,6 @@ namespace DataToolKit.Storage.DataStores
 
             if (!isSingleton)
             {
-                // Nicht-Singleton: Async erstellen und laden
                 return await Task.Run(() =>
                 {
                     var repository = ResolveRepository<T>(repositoryFactory);
@@ -352,24 +376,29 @@ namespace DataToolKit.Storage.DataStores
                 });
             }
 
-            // Thread-safe Singleton-Zugriff
             await _lock.WaitAsync();
             try
             {
-                var key = GetPersistentKey<T>();
+                var key = GetKey<T>();
                 
                 if (_singletons.TryGetValue(key, out var existing))
                 {
-                    return (PersistentDataStore<T>)existing;
+                    if (existing is PersistentDataStore<T> persistentStore)
+                    {
+                        return persistentStore;
+                    }
+                    
+                    throw new InvalidOperationException(
+                        $"Ein DataStore für Typ '{typeof(T).Name}' existiert bereits, aber als '{existing.GetType().Name}'.\n" +
+                        $"Pro Typ kann nur eine Singleton-Instanz existieren (entweder InMemory ODER Persistent).\n" +
+                        $"Verwenden Sie GetDataStoreAsync<{typeof(T).Name}>() um den existierenden Store zu erhalten.");
                 }
 
-                // Async Repository auflösen und Store erstellen
                 var newStore = await Task.Run(() =>
                 {
                     var repository = ResolveRepository<T>(repositoryFactory);
                     var store = _factory.CreatePersistentStore<T>(repository, trackPropertyChanges);
                     
-                    // AutoLoad im Provider (nicht in Factory!)
                     if (autoLoad)
                     {
                         store.Load();
@@ -406,16 +435,13 @@ namespace DataToolKit.Storage.DataStores
         private IRepositoryBase<T> ResolveRepository<T>(IRepositoryFactory repositoryFactory)
             where T : class
         {
-            // EntityBase ? LiteDB (granulare Operationen mit Update/Delete)
             if (typeof(EntityBase).IsAssignableFrom(typeof(T)))
             {
-                // Runtime-Cast ist sicher, da EntityBase : IEntity implementiert
                 var method = typeof(IRepositoryFactory).GetMethod(nameof(IRepositoryFactory.GetLiteDbRepository))!;
                 var genericMethod = method.MakeGenericMethod(typeof(T));
                 return (IRepositoryBase<T>)genericMethod.Invoke(repositoryFactory, null)!;
             }
 
-            // POCOs ? JSON (atomares WriteAll, funktioniert mit jedem POCO)
             return repositoryFactory.GetJsonRepository<T>();
         }
 
@@ -427,25 +453,15 @@ namespace DataToolKit.Storage.DataStores
             _lock.Wait();
             try
             {
-                // Versuche, sowohl InMemory- als auch Persistent-Keys zu entfernen
-                var inMemoryKey = GetInMemoryKey<T>();
-                var persistentKey = GetPersistentKey<T>();
+                var key = GetKey<T>();
                 
-                bool removed = false;
-                
-                if (_singletons.TryGetValue(inMemoryKey, out var inMemoryStore))
+                if (_singletons.TryGetValue(key, out var store))
                 {
-                    (inMemoryStore as IDisposable)?.Dispose();
-                    removed |= _singletons.Remove(inMemoryKey);
+                    (store as IDisposable)?.Dispose();
+                    return _singletons.Remove(key);
                 }
                 
-                if (_singletons.TryGetValue(persistentKey, out var persistentStore))
-                {
-                    (persistentStore as IDisposable)?.Dispose();
-                    removed |= _singletons.Remove(persistentKey);
-                }
-                
-                return removed;
+                return false;
             }
             finally
             {

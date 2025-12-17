@@ -216,8 +216,8 @@ public sealed class LessonFactoryTests
 
     [Theory]
     [InlineData("short", 10, 1)]
-    [InlineData("word1 word2 word3", 10, 2)]
-    [InlineData("a b c d e f g", 5, 7)]
+    [InlineData("word1 word2 word3", 10, 3)]  // "word1" (5), "word2" (5), "word3" (5) - jedes Wort einzeln, da "word1 word2" = 11 Zeichen
+    [InlineData("a b c d e f g", 5, 3)]       // "a b c" (5), "d e f" (5), "g" (1) - Soft-Wrap packt mehrere kurze Wörter zusammen
     public void FromText_WithMaxBlockLen_ShouldWrapCorrectly(
         string text,
         int maxBlockLen,

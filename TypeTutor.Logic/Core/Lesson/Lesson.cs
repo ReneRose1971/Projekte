@@ -21,18 +21,22 @@ public sealed class Lesson
         if (string.IsNullOrWhiteSpace(Meta.Title))
             throw new ArgumentException("Metadata.Title must not be empty.", nameof(meta));
 
-        Blocks = blocks ?? throw new ArgumentNullException(nameof(blocks));
+        if (blocks is null)
+            throw new ArgumentNullException(nameof(blocks));
 
-        for (int i = 0; i < Blocks.Count; i++)
+        // Erstelle eine defensive Kopie, um Immutabilität zu gewährleisten
+        var blocksCopy = new string[blocks.Count];
+        for (int i = 0; i < blocks.Count; i++)
         {
-            var b = Blocks[i];
+            var b = blocks[i];
             if (b is null)
                 throw new ArgumentException("Blocks must not contain null elements.", nameof(blocks));
             if (b.Length == 0)
                 throw new ArgumentException("Blocks must not contain empty elements.", nameof(blocks));
-            // Hinweis: weitere Normalisierungsregeln (Trim/Whitespace) übernimmt die Factory.
+            blocksCopy[i] = b;
         }
 
+        Blocks = Array.AsReadOnly(blocksCopy);
         TargetText = string.Join(" ", Blocks);
         Metrics = LessonMetrics.FromBlocks(Blocks);
     }

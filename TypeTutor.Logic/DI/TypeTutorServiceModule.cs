@@ -9,7 +9,7 @@ namespace TypeTutor.Logic.DI;
 
 /// <summary>
 /// Service-Modul für TypeTutor.Logic.
-/// Registriert EqualityComparer und JSON-Repositories für LessonData und LessonGuideData.
+/// Registriert EqualityComparer und JSON-Repositories für LessonData, LessonGuideData und ModuleData.
 /// 
 /// Verwendung:
 /// <code>
@@ -43,22 +43,26 @@ public sealed class TypeTutorServiceModule : IServiceModule
     }
 
     /// <summary>
-    /// Registriert EqualityComparer für LessonData und LessonGuideData.
+    /// Registriert EqualityComparer für LessonData, LessonGuideData und ModuleData.
     /// Diese werden für Repository-Operationen (Duplicate-Detection) benötigt.
     /// </summary>
     private static void RegisterEqualityComparers(IServiceCollection services)
     {
-        // LessonData EqualityComparer (basierend auf Title)
+        // LessonData EqualityComparer (basierend auf LessonId)
         services.AddSingleton<IEqualityComparer<LessonData>>(
             new LessonDataEqualityComparer());
 
-        // LessonGuideData EqualityComparer (basierend auf Title)
+        // LessonGuideData EqualityComparer (basierend auf LessonId)
         services.AddSingleton<IEqualityComparer<LessonGuideData>>(
             new LessonGuideDataEqualityComparer());
+
+        // ModuleData EqualityComparer (basierend auf ModuleId)
+        services.AddSingleton<IEqualityComparer<ModuleData>>(
+            new ModuleDataEqualityComparer());
     }
 
     /// <summary>
-    /// Registriert JSON-Repositories für LessonData und LessonGuideData.
+    /// Registriert JSON-Repositories für LessonData, LessonGuideData und ModuleData.
     /// 
     /// Speicherort:
     /// - Windows: %USERPROFILE%\Documents\TypeTutor\Data\
@@ -67,6 +71,7 @@ public sealed class TypeTutorServiceModule : IServiceModule
     /// Dateinamen:
     /// - LessonData: lessons.json
     /// - LessonGuideData: lesson-guides.json
+    /// - ModuleData: modules.json
     /// </summary>
     private static void RegisterRepositories(IServiceCollection services)
     {
@@ -80,6 +85,12 @@ public sealed class TypeTutorServiceModule : IServiceModule
         services.AddJsonRepository<LessonGuideData>(
             appSubFolder: "TypeTutor",
             fileNameBase: "lesson-guides",
+            subFolder: "Data");
+
+        // ModuleData Repository
+        services.AddJsonRepository<ModuleData>(
+            appSubFolder: "TypeTutor",
+            fileNameBase: "modules",
             subFolder: "Data");
     }
 
