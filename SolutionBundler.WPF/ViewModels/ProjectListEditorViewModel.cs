@@ -3,7 +3,7 @@ using CustomWPFControls.Factories;
 using CustomWPFControls.ViewModels;
 using DataToolKit.Abstractions.DataStores;
 using PropertyChanged;
-using SolutionBundler.Core.Implementations;
+using SolutionBundler.Core.Abstractions;
 using SolutionBundler.Core.Models;
 using SolutionBundler.Core.Models.Persistence;
 using SolutionBundler.Core.Storage;
@@ -30,7 +30,7 @@ namespace SolutionBundler.WPF.ViewModels;
 public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<ProjectInfo, ProjectInfoViewModel>
 {
     private readonly ProjectStore _projectStore;
-    private readonly BundleOrchestrator _bundleOrchestrator;
+    private readonly IBundleOrchestrator _bundleOrchestrator;
     private string _statusMessage = "Bereit zum Scannen...";
     private int _progressPercentage;
     private string _logText = "Bereit zum Scannen...\nWählen Sie Projekte aus und starten Sie den Scan-Prozess.";
@@ -56,7 +56,7 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
         IDataStoreProvider dataStoreProvider,
         IViewModelFactory<ProjectInfo, ProjectInfoViewModel> viewModelFactory,
         IEqualityComparer<ProjectInfo> comparer,
-        BundleOrchestrator bundleOrchestrator)
+        IBundleOrchestrator bundleOrchestrator)
         : base(
             dataStoreProvider.GetDataStore<ProjectInfo>(),
             viewModelFactory,
@@ -265,11 +265,14 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
                     return null; // Sollte nicht passieren
                 }
 
-                // Frage nach optionaler Gruppe
-                var group = UserDialogHelper.ShowGroupInputDialog(
-                    "Möchten Sie das Projekt einer Gruppe zuordnen?\n" +
-                    "(Leer lassen für keine Gruppe)",
-                    string.Empty);
+                // Zeige Details-Dialog mit verfügbaren Gruppen
+                var availableGroups = _projectStore.GetGroups().ToList();
+                var group = UserDialogHelper.ShowProjectDetails(
+                    projectInfo.Name,
+                    projectInfo.Path,
+                    File.Exists(projectInfo.Path),
+                    null, // Keine Gruppe initial
+                    availableGroups);
 
                 // Wenn Gruppe angegeben wurde, setzen (wird automatisch persistiert)
                 if (!string.IsNullOrWhiteSpace(group))
@@ -291,11 +294,15 @@ public sealed class ProjectListEditorViewModel : EditableCollectionViewModel<Pro
     {
         EditModel = (projectViewModel) =>
         {
+            // Hole verfügbare Gruppen (ohne "(Alle)")
+            var availableGroups = _projectStore.GetGroups().ToList();
+            
             var newGroup = UserDialogHelper.ShowProjectDetails(
                 projectViewModel.Name,
                 projectViewModel.Path,
                 File.Exists(projectViewModel.Path),
-                projectViewModel.Group);
+                projectViewModel.Group,
+                availableGroups);
 
             // Wenn sich die Gruppe geändert hat, aktualisieren (wird automatisch persistiert)
             if (newGroup != projectViewModel.Group)

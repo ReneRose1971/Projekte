@@ -39,6 +39,12 @@
                                         MinWidth="40"
                                         FontSize="16"
                                         FontWeight="Bold"/>
+                                <Button Content="Details"
+                                        Command="{TemplateBinding EditCommand}"
+                                        Visibility="{TemplateBinding IsEditVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Padding="10,5"
+                                        Margin="0,0,5,0"
+                                        MinWidth="100"/>
                                 <Button Content="-"
                                         Command="{TemplateBinding DeleteCommand}"
                                         Visibility="{TemplateBinding IsDeleteVisible, Converter={StaticResource BoolToVisibilityConverter}}"
@@ -67,9 +73,16 @@
                                             <Border Padding="10" 
                                                     BorderThickness="0,0,0,1" 
                                                     BorderBrush="#EEEEEE">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <!-- Status Indicator: Green circle for existing, Red for missing -->
-                                                    <Ellipse Width="12" 
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <!-- Status Indicator -->
+                                                    <Ellipse Grid.Column="0"
+                                                             Width="12" 
                                                              Height="12"
                                                              Margin="0,0,10,0"
                                                              VerticalAlignment="Center"
@@ -86,7 +99,8 @@
                                                         </Ellipse.Style>
                                                     </Ellipse>
                                                     
-                                                    <StackPanel VerticalAlignment="Center">
+                                                    <!-- Name und Pfad -->
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                         <TextBlock Text="{Binding Name}"
                                                                    FontWeight="Bold"
                                                                    FontSize="14"/>
@@ -96,7 +110,36 @@
                                                                    TextTrimming="CharacterEllipsis"
                                                                    MaxWidth="500"/>
                                                     </StackPanel>
-                                                </StackPanel>
+
+                                                    <!-- Gruppe Badge -->
+                                                    <Border Grid.Column="2"
+                                                            VerticalAlignment="Center"
+                                                            Margin="10,0,0,0"
+                                                            Background="#E3F2FD"
+                                                            BorderBrush="#2196F3"
+                                                            BorderThickness="1"
+                                                            CornerRadius="3"
+                                                            Padding="8,3"
+                                                            ToolTip="Gruppe">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Group}" Value="">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding Group}" Value="{x:Null}">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock Text="{Binding Group}"
+                                                                   Foreground="#1976D2"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"/>
+                                                    </Border>
+                                                </Grid>
                                             </Border>
                                         </DataTemplate>
                                     </ListBox.ItemTemplate>

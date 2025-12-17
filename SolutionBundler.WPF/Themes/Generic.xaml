@@ -36,6 +36,12 @@
                                         Padding="10,5"
                                         Margin="0,0,5,0"
                                         MinWidth="100"/>
+                                <Button Content="Details"
+                                        Command="{TemplateBinding EditCommand}"
+                                        Visibility="{TemplateBinding IsEditVisible, Converter={StaticResource BoolToVisibilityConverter}}"
+                                        Padding="10,5"
+                                        Margin="0,0,5,0"
+                                        MinWidth="100"/>
                                 <Button Content="Entfernen"
                                         Command="{TemplateBinding DeleteCommand}"
                                         Visibility="{TemplateBinding IsDeleteVisible, Converter={StaticResource BoolToVisibilityConverter}}"

@@ -35,12 +35,13 @@
                 ItemsSource="{Binding FilteredProjects}"
                 SelectedItem="{Binding SelectedProject, Mode=TwoWay}"
                 AddCommand="{Binding AddProjectCommand}"
+                EditCommand="{Binding EditCommand}"
                 DeleteCommand="{Binding RemoveProjectCommand}"
                 ClearCommand="{Binding ClearProjectsCommand}"
                 IsAddVisible="True"
+                IsEditVisible="True"
                 IsDeleteVisible="True"
-                IsClearVisible="True"
-                IsEditVisible="False"/>
+                IsClearVisible="True"/>
         </Grid>
 
         <GridSplitter Grid.Column="1"
