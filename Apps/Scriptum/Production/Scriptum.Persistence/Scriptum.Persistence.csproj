@@ -15,4 +15,10 @@
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Common.BootStrap\Common.BootStrap.csproj" />
+    <ProjectReference Include="..\..\..\..\DataToolKit\DataToolKit.csproj" />
+    <ProjectReference Include="..\Scriptum.Progress\Scriptum.Progress.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -37,4 +37,7 @@
     <Project Path="DataToolKit/DataToolKit.csproj" />
     <Project Path="TestHelper/TestHelper.csproj" />
   </Folder>
+  <Folder Name="/Modelle/">
+    <File Path="Modelle/Scriptum_Domaenenmodell_Core_Engine.md" />
+  </Folder>
 </Solution>

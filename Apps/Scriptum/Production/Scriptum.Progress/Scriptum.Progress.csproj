@@ -15,4 +15,9 @@
     <PackageReference Include="PropertyChanged.Fody" Version="4.1.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Scriptum.Core\Scriptum.Core.csproj" />
+    <ProjectReference Include="..\..\..\..\DataToolKit\DataToolKit.csproj" />
+  </ItemGroup>
+
 </Project>

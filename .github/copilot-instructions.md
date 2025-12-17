@@ -83,6 +83,52 @@
 - Logic-Bibliothek mit Engine, Lessons, Data-Klassen
 - WPF-GUI mit Visual Keyboard
 
+#### Scriptum
+- **Scriptum Discipulus**: Tipptrainer für **DE-QWERTZ** (keine anderen Layouts)
+- **Scriptum.Core**: Nur Domänenmodelle und Value Objects
+  - ? Keine UI, keine Persistenz, keine DI-Logik
+  - ? Pure Domain-Typen
+- **Scriptum.Engine**: Trainingslogik
+  - ? Deterministisch, UI-frei, keine Persistenz
+  - ? darf nur `Scriptum.Core` referenzieren
+- **Scriptum.Content**: Lern-/Didaktik-DTOs
+  - ? Reine Content-Daten, keine Statistik
+  - ? darf nur `Scriptum.Core` referenzieren
+- **Scriptum.Progress**: Nutzer-Sessions & Statistik
+  - ? Session-basierte Statistik, keine Content-Daten
+  - ? darf nur `Scriptum.Core` referenzieren
+- **Scriptum.Persistence**: DataToolKit-Integration
+  - ? Repositories, Initializer
+  - ? darf `Scriptum.Content` und `Scriptum.Progress` referenzieren
+- **Scriptum.Wpf**: WPF-Anwendung
+  - ? Einzige UI-Schicht
+  - ? darf `Scriptum.Engine`, `Scriptum.Content`, `Scriptum.Progress` referenzieren
+
+##### Erlaubte Abhängigkeiten (Scriptum)
+```
+Engine ? Core
+Content ? Core
+Progress ? Core
+Persistence ? Content, Progress
+Wpf ? Engine, Content, Progress
+```
+
+##### Verbotene Abhängigkeiten (Scriptum)
+```
+? Core ? irgendetwas
+? Engine ? Wpf, Persistence
+? Content ? Progress (keine gegenseitigen Referenzen!)
+? Progress ? Engine
+? Wpf ? Persistence (keine direkte Repository-Nutzung in UI)
+```
+
+##### Scriptum-spezifische Regeln
+- ???? **Layout fest DE-QWERTZ**: Kein Layout-Umschalten, keine Internationalisierung
+- ?? **Statistik ist session-basiert**: Content bleibt statisch
+- ?? **Deutsche XML-Kommentare**: Öffentliche Klassen & Member
+- ?? **Änderungen nur nach expliziter Anweisung**: Keine stillen Refactorings
+- ?? **Bei Code immer vollständige Dateien**: Keine Schnipsel, keine Ellipsen
+
 ### Coding Conventions
 
 #### Dependency Injection und Service Modules

@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Production\Scriptum.Persistence\Scriptum.Persistence.csproj" />
+    <ProjectReference Include="..\..\..\..\TestHelper\TestHelper.csproj" />
   </ItemGroup>
 
 </Project>
