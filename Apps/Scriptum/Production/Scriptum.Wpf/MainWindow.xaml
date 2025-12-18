@@ -3,9 +3,40 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:keyboard="clr-namespace:Scriptum.Wpf.Keyboard.Controls;assembly=Scriptum.Wpf.Keyboard"
         mc:Ignorable="d"
-        Title="Scriptum" Height="450" Width="800">
-    <Grid>
+        Title="Scriptum - Visuelle Tastatur Demo" Height="600" Width="1000"
+        PreviewKeyDown="Window_PreviewKeyDown"
+        PreviewKeyUp="Window_PreviewKeyUp">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
         
+        <!-- Info-Bereich -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="Visuelle deutsche QWERTZ-Tastatur" 
+                       FontSize="16" FontWeight="SemiBold" Margin="0,0,0,5"/>
+            <TextBlock Text="Druecken Sie beliebige Tasten - die Tastatur zeigt die gedrueckten Tasten an." 
+                       Foreground="Gray"/>
+        </StackPanel>
+        
+        <!-- Test-Textfeld -->
+        <Border Grid.Row="1" BorderBrush="#D1D5DB" BorderThickness="1" 
+                CornerRadius="4" Padding="8" Margin="0,0,0,10">
+            <TextBox x:Name="TestTextBox" 
+                     Text="Hier tippen, um die visuelle Tastatur zu testen..."
+                     FontSize="14"
+                     BorderThickness="0"
+                     Background="Transparent"/>
+        </Border>
+        
+        <!-- Visuelle Tastatur -->
+        <Border Grid.Row="2" BorderBrush="#D1D5DB" BorderThickness="1" 
+                CornerRadius="4" Padding="10" Background="White">
+            <keyboard:VisualKeyboard x:Name="KeyboardControl" />
+        </Border>
     </Grid>
 </Window>
