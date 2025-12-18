@@ -25,7 +25,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Common.BootStrap\Common.BootStrap.csproj" />
+    <ProjectReference Include="..\..\..\..\DataToolKit\DataToolKit.csproj" />
+    <ProjectReference Include="..\..\..\..\TestHelper.DataToolKit\TestHelper.DataToolKit.csproj" />
     <ProjectReference Include="..\..\Production\Scriptum.Content\Scriptum.Content.csproj" />
+    <ProjectReference Include="..\..\Production\Scriptum.Persistence\Scriptum.Persistence.csproj" />
   </ItemGroup>
 
 </Project>

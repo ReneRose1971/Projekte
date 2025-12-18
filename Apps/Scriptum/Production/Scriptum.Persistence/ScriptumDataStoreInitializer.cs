@@ -3,12 +3,14 @@ using Common.Bootstrap;
 using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Storage.Repositories;
 using Microsoft.Extensions.DependencyInjection;
+using Scriptum.Content.Data;
 using Scriptum.Progress;
 
 namespace Scriptum.Persistence;
 
 /// <summary>
-/// Initialisiert den DataStore für <see cref="TrainingSession"/>.
+/// Initialisiert die DataStores für <see cref="TrainingSession"/>, 
+/// <see cref="ModuleData"/>, <see cref="LessonData"/> und <see cref="LessonGuideData"/>.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -24,7 +26,7 @@ namespace Scriptum.Persistence;
 public sealed class ScriptumDataStoreInitializer : IDataStoreInitializer
 {
     /// <summary>
-    /// Initialisiert den PersistentDataStore für TrainingSession.
+    /// Initialisiert die PersistentDataStores für Progress und Content.
     /// </summary>
     /// <param name="serviceProvider">Der Service-Provider.</param>
     /// <exception cref="InvalidOperationException">
@@ -35,7 +37,38 @@ public sealed class ScriptumDataStoreInitializer : IDataStoreInitializer
         var provider = serviceProvider.GetRequiredService<IDataStoreProvider>();
         var repositoryFactory = serviceProvider.GetRequiredService<IRepositoryFactory>();
 
+        InitializeProgressDataStores(provider, repositoryFactory);
+        InitializeContentDataStores(provider, repositoryFactory);
+    }
+
+    private static void InitializeProgressDataStores(
+        IDataStoreProvider provider,
+        IRepositoryFactory repositoryFactory)
+    {
         provider.GetPersistent<TrainingSession>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: true,
+            autoLoad: true);
+    }
+
+    private static void InitializeContentDataStores(
+        IDataStoreProvider provider,
+        IRepositoryFactory repositoryFactory)
+    {
+        provider.GetPersistent<ModuleData>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: true,
+            autoLoad: true);
+
+        provider.GetPersistent<LessonData>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: true,
+            autoLoad: true);
+
+        provider.GetPersistent<LessonGuideData>(
             repositoryFactory,
             isSingleton: true,
             trackPropertyChanges: true,
