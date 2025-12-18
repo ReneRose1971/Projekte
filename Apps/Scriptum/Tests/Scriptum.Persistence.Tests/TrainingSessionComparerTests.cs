@@ -41,8 +41,9 @@ public sealed class TrainingSessionComparerTests
     [Fact]
     public void Equals_Should_Return_True_ForIdenticalSessions()
     {
-        var session1 = CreateSession(1);
-        var session2 = CreateSession(1);
+        var startedAt = DateTimeOffset.UtcNow;
+        var session1 = CreateSession(1, lessonId: "Lesson1", moduleId: "Module1", isCompleted: false, startedAt: startedAt);
+        var session2 = CreateSession(1, lessonId: "Lesson1", moduleId: "Module1", isCompleted: false, startedAt: startedAt);
 
         var result = _comparer.Equals(session1, session2);
 
@@ -135,8 +136,29 @@ public sealed class TrainingSessionComparerTests
     [Fact]
     public void GetHashCode_Should_ReturnSameValue_ForIdenticalSessions()
     {
-        var session1 = CreateSession(1);
-        var session2 = CreateSession(1);
+        var startedAt = DateTimeOffset.UtcNow;
+        
+        var session1 = new TrainingSession
+        {
+            Id = 1,
+            LessonId = "Lesson1",
+            ModuleId = "Module1",
+            StartedAt = startedAt,
+            IsCompleted = false,
+            Inputs = new List<StoredInput>(),
+            Evaluations = new List<StoredEvaluation>()
+        };
+        
+        var session2 = new TrainingSession
+        {
+            Id = 1,
+            LessonId = "Lesson1",
+            ModuleId = "Module1",
+            StartedAt = startedAt,
+            IsCompleted = false,
+            Inputs = new List<StoredInput>(),
+            Evaluations = new List<StoredEvaluation>()
+        };
 
         var hash1 = _comparer.GetHashCode(session1);
         var hash2 = _comparer.GetHashCode(session2);
@@ -156,14 +178,15 @@ public sealed class TrainingSessionComparerTests
         int id,
         string lessonId = "Lesson1",
         string moduleId = "Module1",
-        bool isCompleted = false)
+        bool isCompleted = false,
+        DateTimeOffset? startedAt = null)
     {
         return new TrainingSession
         {
             Id = id,
             LessonId = lessonId,
             ModuleId = moduleId,
-            StartedAt = DateTimeOffset.UtcNow,
+            StartedAt = startedAt ?? DateTimeOffset.UtcNow,
             IsCompleted = isCompleted,
             Inputs = new List<StoredInput>(),
             Evaluations = new List<StoredEvaluation>()

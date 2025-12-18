@@ -1,4 +1,6 @@
+using Common.Bootstrap;
 using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Abstractions.DI;
 using DataToolKit.Abstractions.Repositories;
 using DataToolKit.Storage.Repositories;
 using FluentAssertions;
@@ -8,18 +10,27 @@ using Xunit;
 
 namespace Scriptum.Persistence.Tests;
 
-public sealed class ScriptumPersistenceServiceModuleTests
+[Collection("LiteDB Tests")]
+public sealed class ScriptumPersistenceServiceModuleTests : IDisposable
 {
+    private ServiceProvider? _serviceProvider;
+
+    public void Dispose()
+    {
+        _serviceProvider?.Dispose();
+    }
+
     [Fact]
     public void Register_Should_Register_IRepositoryOfTrainingSession()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
 
-        module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repository = provider.GetService<IRepository<TrainingSession>>();
+        var repository = _serviceProvider.GetService<IRepository<TrainingSession>>();
 
         repository.Should().NotBeNull();
     }
@@ -28,12 +39,13 @@ public sealed class ScriptumPersistenceServiceModuleTests
     public void Register_Should_Register_IRepositoryBaseOfTrainingSession()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
 
-        module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repository = provider.GetService<IRepositoryBase<TrainingSession>>();
+        var repository = _serviceProvider.GetService<IRepositoryBase<TrainingSession>>();
 
         repository.Should().NotBeNull();
     }
@@ -42,12 +54,13 @@ public sealed class ScriptumPersistenceServiceModuleTests
     public void Register_Should_Register_IDataStoreProvider()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
 
-        module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var dataStoreProvider = provider.GetService<IDataStoreProvider>();
+        var dataStoreProvider = _serviceProvider.GetService<IDataStoreProvider>();
 
         dataStoreProvider.Should().NotBeNull();
     }
@@ -56,12 +69,13 @@ public sealed class ScriptumPersistenceServiceModuleTests
     public void Register_Should_Register_IRepositoryFactory()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
 
-        module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repositoryFactory = provider.GetService<IRepositoryFactory>();
+        var repositoryFactory = _serviceProvider.GetService<IRepositoryFactory>();
 
         repositoryFactory.Should().NotBeNull();
     }
@@ -70,13 +84,14 @@ public sealed class ScriptumPersistenceServiceModuleTests
     public void Register_Should_Return_SameInstance_ForIRepositoryAndIRepositoryBase()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
 
-        module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repoBase = provider.GetRequiredService<IRepositoryBase<TrainingSession>>();
-        var repo = provider.GetRequiredService<IRepository<TrainingSession>>();
+        var repoBase = _serviceProvider.GetRequiredService<IRepositoryBase<TrainingSession>>();
+        var repo = _serviceProvider.GetRequiredService<IRepository<TrainingSession>>();
 
         ReferenceEquals(repoBase, repo).Should().BeTrue();
     }

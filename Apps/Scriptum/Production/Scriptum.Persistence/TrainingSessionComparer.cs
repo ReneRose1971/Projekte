@@ -51,13 +51,14 @@ public sealed class TrainingSessionComparer : IEqualityComparer<TrainingSession>
 
         var hash = new HashCode();
         hash.Add(obj.Id);
-        hash.Add(obj.LessonId);
-        hash.Add(obj.ModuleId);
+        hash.Add(obj.LessonId, StringComparer.Ordinal);
+        hash.Add(obj.ModuleId, StringComparer.Ordinal);
         hash.Add(obj.StartedAt);
         hash.Add(obj.EndedAt);
         hash.Add(obj.IsCompleted);
-        hash.Add(obj.Inputs.Count);
-        hash.Add(obj.Evaluations.Count);
+
+        AddSequence(hash, obj.Inputs);
+        AddSequence(hash, obj.Evaluations);
 
         return hash.ToHashCode();
     }
@@ -68,5 +69,15 @@ public sealed class TrainingSessionComparer : IEqualityComparer<TrainingSession>
             return false;
 
         return a.SequenceEqual(b, EqualityComparer<T>.Default);
+    }
+
+    private static void AddSequence<T>(HashCode hash, List<T> items) where T : class
+    {
+        hash.Add(items.Count);
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            hash.Add(items[i], EqualityComparer<T>.Default);
+        }
     }
 }

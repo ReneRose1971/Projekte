@@ -1,5 +1,7 @@
 using System;
+using Common.Bootstrap;
 using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Abstractions.DI;
 using DataToolKit.Storage.DataStores;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,21 +10,30 @@ using Xunit;
 
 namespace Scriptum.Persistence.Tests;
 
-public sealed class ScriptumDataStoreInitializerTests
+[Collection("LiteDB Tests")]
+public sealed class ScriptumDataStoreInitializerTests : IDisposable
 {
+    private ServiceProvider? _serviceProvider;
+
+    public void Dispose()
+    {
+        _serviceProvider?.Dispose();
+    }
+
     [Fact]
     public void Initialize_Should_Create_PersistentDataStore()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
-        module.Register(services);
-        var provider = services.BuildServiceProvider();
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
+        _serviceProvider = services.BuildServiceProvider();
 
         var initializer = new ScriptumDataStoreInitializer();
 
-        initializer.Initialize(provider);
+        initializer.Initialize(_serviceProvider);
 
-        var dataStoreProvider = provider.GetRequiredService<IDataStoreProvider>();
+        var dataStoreProvider = _serviceProvider.GetRequiredService<IDataStoreProvider>();
         var dataStore = dataStoreProvider.GetDataStore<TrainingSession>();
 
         dataStore.Should().NotBeNull();
@@ -33,17 +44,18 @@ public sealed class ScriptumDataStoreInitializerTests
     public void Initialize_Should_Be_Idempotent()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
-        module.Register(services);
-        var provider = services.BuildServiceProvider();
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
+        _serviceProvider = services.BuildServiceProvider();
 
         var initializer = new ScriptumDataStoreInitializer();
 
-        initializer.Initialize(provider);
-        var dataStoreProvider = provider.GetRequiredService<IDataStoreProvider>();
+        initializer.Initialize(_serviceProvider);
+        var dataStoreProvider = _serviceProvider.GetRequiredService<IDataStoreProvider>();
         var firstStore = dataStoreProvider.GetDataStore<TrainingSession>();
 
-        initializer.Initialize(provider);
+        initializer.Initialize(_serviceProvider);
         var secondStore = dataStoreProvider.GetDataStore<TrainingSession>();
 
         ReferenceEquals(firstStore, secondStore).Should().BeTrue();
@@ -53,14 +65,15 @@ public sealed class ScriptumDataStoreInitializerTests
     public void Initialize_Should_Return_SameInstance_OnMultipleCalls()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
-        module.Register(services);
-        var provider = services.BuildServiceProvider();
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
+        _serviceProvider = services.BuildServiceProvider();
 
         var initializer = new ScriptumDataStoreInitializer();
-        initializer.Initialize(provider);
+        initializer.Initialize(_serviceProvider);
 
-        var dataStoreProvider = provider.GetRequiredService<IDataStoreProvider>();
+        var dataStoreProvider = _serviceProvider.GetRequiredService<IDataStoreProvider>();
         var firstCall = dataStoreProvider.GetDataStore<TrainingSession>();
         var secondCall = dataStoreProvider.GetDataStore<TrainingSession>();
 
@@ -71,11 +84,11 @@ public sealed class ScriptumDataStoreInitializerTests
     public void Initialize_Should_Throw_WhenIDataStoreProviderNotRegistered()
     {
         var services = new ServiceCollection();
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
         var initializer = new ScriptumDataStoreInitializer();
 
-        Action act = () => initializer.Initialize(provider);
+        Action act = () => initializer.Initialize(_serviceProvider);
 
         act.Should().Throw<InvalidOperationException>();
     }
@@ -85,11 +98,11 @@ public sealed class ScriptumDataStoreInitializerTests
     {
         var services = new ServiceCollection();
         services.AddSingleton<IDataStoreProvider, DataStoreProvider>();
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
         var initializer = new ScriptumDataStoreInitializer();
 
-        Action act = () => initializer.Initialize(provider);
+        Action act = () => initializer.Initialize(_serviceProvider);
 
         act.Should().Throw<InvalidOperationException>();
     }

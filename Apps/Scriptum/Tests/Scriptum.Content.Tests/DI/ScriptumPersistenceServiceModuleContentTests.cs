@@ -8,8 +8,16 @@ using Xunit;
 
 namespace Scriptum.Content.Tests.DI;
 
-public sealed class ScriptumPersistenceServiceModuleContentTests
+[Collection("LiteDB Tests")]
+public sealed class ScriptumPersistenceServiceModuleContentTests : IDisposable
 {
+    private ServiceProvider? _serviceProvider;
+
+    public void Dispose()
+    {
+        _serviceProvider?.Dispose();
+    }
+
     [Fact]
     public void Register_Should_Register_ModuleDataComparer()
     {
@@ -17,9 +25,9 @@ public sealed class ScriptumPersistenceServiceModuleContentTests
         var module = new ScriptumPersistenceServiceModule();
 
         module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var comparer = provider.GetService<IEqualityComparer<ModuleData>>();
+        var comparer = _serviceProvider.GetService<IEqualityComparer<ModuleData>>();
 
         comparer.Should().NotBeNull();
         comparer.Should().BeOfType<ModuleDataComparer>();
@@ -32,9 +40,9 @@ public sealed class ScriptumPersistenceServiceModuleContentTests
         var module = new ScriptumPersistenceServiceModule();
 
         module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var comparer = provider.GetService<IEqualityComparer<LessonData>>();
+        var comparer = _serviceProvider.GetService<IEqualityComparer<LessonData>>();
 
         comparer.Should().NotBeNull();
         comparer.Should().BeOfType<LessonDataComparer>();
@@ -47,9 +55,9 @@ public sealed class ScriptumPersistenceServiceModuleContentTests
         var module = new ScriptumPersistenceServiceModule();
 
         module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var comparer = provider.GetService<IEqualityComparer<LessonGuideData>>();
+        var comparer = _serviceProvider.GetService<IEqualityComparer<LessonGuideData>>();
 
         comparer.Should().NotBeNull();
         comparer.Should().BeOfType<LessonGuideDataComparer>();
@@ -62,9 +70,9 @@ public sealed class ScriptumPersistenceServiceModuleContentTests
         var module = new ScriptumPersistenceServiceModule();
 
         module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repository = provider.GetService<IRepositoryBase<ModuleData>>();
+        var repository = _serviceProvider.GetService<IRepositoryBase<ModuleData>>();
 
         repository.Should().NotBeNull();
     }
@@ -76,9 +84,9 @@ public sealed class ScriptumPersistenceServiceModuleContentTests
         var module = new ScriptumPersistenceServiceModule();
 
         module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repository = provider.GetService<IRepositoryBase<LessonData>>();
+        var repository = _serviceProvider.GetService<IRepositoryBase<LessonData>>();
 
         repository.Should().NotBeNull();
     }
@@ -90,9 +98,9 @@ public sealed class ScriptumPersistenceServiceModuleContentTests
         var module = new ScriptumPersistenceServiceModule();
 
         module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repository = provider.GetService<IRepositoryBase<LessonGuideData>>();
+        var repository = _serviceProvider.GetService<IRepositoryBase<LessonGuideData>>();
 
         repository.Should().NotBeNull();
     }
@@ -104,9 +112,9 @@ public sealed class ScriptumPersistenceServiceModuleContentTests
         var module = new ScriptumPersistenceServiceModule();
 
         module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repository = provider.GetService<IRepository<ModuleData>>();
+        var repository = _serviceProvider.GetService<IRepository<ModuleData>>();
 
         repository.Should().BeNull();
     }
@@ -118,9 +126,9 @@ public sealed class ScriptumPersistenceServiceModuleContentTests
         var module = new ScriptumPersistenceServiceModule();
 
         module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repository = provider.GetService<IRepository<LessonData>>();
+        var repository = _serviceProvider.GetService<IRepository<LessonData>>();
 
         repository.Should().BeNull();
     }
@@ -132,9 +140,9 @@ public sealed class ScriptumPersistenceServiceModuleContentTests
         var module = new ScriptumPersistenceServiceModule();
 
         module.Register(services);
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repository = provider.GetService<IRepository<LessonGuideData>>();
+        var repository = _serviceProvider.GetService<IRepository<LessonGuideData>>();
 
         repository.Should().BeNull();
     }

@@ -1,6 +1,8 @@
 using System;
 using System.IO;
+using Common.Bootstrap;
 using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Abstractions.DI;
 using DataToolKit.Abstractions.Repositories;
 using DataToolKit.Storage.DataStores;
 using FluentAssertions;
@@ -11,12 +13,11 @@ using Xunit;
 
 namespace Scriptum.Persistence.Tests;
 
-/// <summary>
-/// Integrationstest für das Zusammenspiel von ServiceModule, DataStoreInitializer und Repository.
-/// </summary>
+[Collection("LiteDB Tests")]
 public sealed class ScriptumPersistenceIntegrationTests : IDisposable
 {
     private readonly TestDirectorySandbox _sandbox;
+    private ServiceProvider? _serviceProvider;
 
     public ScriptumPersistenceIntegrationTests()
     {
@@ -25,22 +26,33 @@ public sealed class ScriptumPersistenceIntegrationTests : IDisposable
 
     public void Dispose()
     {
+        _serviceProvider?.Dispose();
         _sandbox.Dispose();
+    }
+
+    private void ClearRepository()
+    {
+        if (_serviceProvider != null)
+        {
+            _serviceProvider.GetRequiredService<IRepositoryBase<TrainingSession>>().Clear();
+        }
     }
 
     [Fact]
     public void FullWorkflow_Should_CreateAndPersistTrainingSession()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
-        module.Register(services);
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
 
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
+        ClearRepository();
+        
         var initializer = new ScriptumDataStoreInitializer();
+        initializer.Initialize(_serviceProvider);
 
-        initializer.Initialize(provider);
-
-        var dataStoreProvider = provider.GetRequiredService<IDataStoreProvider>();
+        var dataStoreProvider = _serviceProvider.GetRequiredService<IDataStoreProvider>();
         var dataStore = (PersistentDataStore<TrainingSession>)dataStoreProvider.GetDataStore<TrainingSession>();
 
         dataStore.Items.Should().BeEmpty();
@@ -63,13 +75,14 @@ public sealed class ScriptumPersistenceIntegrationTests : IDisposable
     public void Repository_Should_BeResolvable()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
-        module.Register(services);
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
 
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
 
-        var repository = provider.GetService<IRepository<TrainingSession>>();
-        var repositoryBase = provider.GetService<IRepositoryBase<TrainingSession>>();
+        var repository = _serviceProvider.GetService<IRepository<TrainingSession>>();
+        var repositoryBase = _serviceProvider.GetService<IRepositoryBase<TrainingSession>>();
 
         repository.Should().NotBeNull();
         repositoryBase.Should().NotBeNull();
@@ -80,12 +93,14 @@ public sealed class ScriptumPersistenceIntegrationTests : IDisposable
     public void DataStore_Should_AutoLoad_OnInitialization()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
-        module.Register(services);
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
 
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
+        ClearRepository();
 
-        var repository = provider.GetRequiredService<IRepository<TrainingSession>>();
+        var repository = _serviceProvider.GetRequiredService<IRepository<TrainingSession>>();
         var testSession = new TrainingSession
         {
             LessonId = "PreSeeded",
@@ -96,9 +111,9 @@ public sealed class ScriptumPersistenceIntegrationTests : IDisposable
         repository.Write(new[] { testSession });
 
         var initializer = new ScriptumDataStoreInitializer();
-        initializer.Initialize(provider);
+        initializer.Initialize(_serviceProvider);
 
-        var dataStoreProvider = provider.GetRequiredService<IDataStoreProvider>();
+        var dataStoreProvider = _serviceProvider.GetRequiredService<IDataStoreProvider>();
         var dataStore = dataStoreProvider.GetDataStore<TrainingSession>();
 
         dataStore.Items.Should().HaveCount(1);
@@ -109,14 +124,17 @@ public sealed class ScriptumPersistenceIntegrationTests : IDisposable
     public void PersistentDataStore_Should_PersistChanges_Immediately()
     {
         var services = new ServiceCollection();
-        var module = new ScriptumPersistenceServiceModule();
-        module.Register(services);
+        services.AddModulesFromAssemblies(
+            typeof(DataToolKitServiceModule).Assembly,
+            typeof(ScriptumPersistenceServiceModule).Assembly);
 
-        var provider = services.BuildServiceProvider();
+        _serviceProvider = services.BuildServiceProvider();
+        ClearRepository();
+        
         var initializer = new ScriptumDataStoreInitializer();
-        initializer.Initialize(provider);
+        initializer.Initialize(_serviceProvider);
 
-        var dataStoreProvider = provider.GetRequiredService<IDataStoreProvider>();
+        var dataStoreProvider = _serviceProvider.GetRequiredService<IDataStoreProvider>();
         var dataStore = (PersistentDataStore<TrainingSession>)dataStoreProvider.GetDataStore<TrainingSession>();
 
         var session = new TrainingSession
@@ -129,7 +147,7 @@ public sealed class ScriptumPersistenceIntegrationTests : IDisposable
 
         dataStore.Add(session);
 
-        var repository = provider.GetRequiredService<IRepository<TrainingSession>>();
+        var repository = _serviceProvider.GetRequiredService<IRepository<TrainingSession>>();
         var persisted = repository.Load();
 
         persisted.Should().HaveCount(1);
