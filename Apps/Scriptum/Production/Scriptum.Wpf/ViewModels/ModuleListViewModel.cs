@@ -1,11 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using DataToolKit.Abstractions.DataStores;
 using PropertyChanged;
-using Scriptum.Content.Data;
 using Scriptum.Wpf.Navigation;
 using Scriptum.Wpf.Projections;
+using Scriptum.Wpf.Projections.Services;
 
 namespace Scriptum.Wpf.ViewModels;
 
@@ -16,20 +14,18 @@ namespace Scriptum.Wpf.ViewModels;
 public sealed class ModuleListViewModel
 {
     private readonly INavigationService _navigationService;
-    private readonly IDataStore<ModuleData> _moduleDataStore;
+    private readonly IContentQueryService _contentQuery;
 
     public ModuleListViewModel(
         INavigationService navigationService,
-        IDataStore<ModuleData> moduleDataStore)
+        IContentQueryService contentQuery)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
-        _moduleDataStore = moduleDataStore ?? throw new ArgumentNullException(nameof(moduleDataStore));
+        _contentQuery = contentQuery ?? throw new ArgumentNullException(nameof(contentQuery));
 
-        Modules = new ObservableCollection<ModuleListItem>(
-            _moduleDataStore.Items
-                .OrderBy(m => m.Order)
-                .ThenBy(m => m.Titel)
-                .Select(m => new ModuleListItem(m.ModuleId, m.Titel, m.Beschreibung)));
+        Modules = new ObservableCollection<ModuleListItem>();
+        
+        _ = LoadModulesAsync();
     }
 
     public ObservableCollection<ModuleListItem> Modules { get; }
@@ -43,5 +39,23 @@ public sealed class ModuleListViewModel
     public void NavigateBack()
     {
         _navigationService.NavigateToHome();
+    }
+
+    private async System.Threading.Tasks.Task LoadModulesAsync()
+    {
+        try
+        {
+            var modules = await _contentQuery.GetModulesAsync();
+            
+            Modules.Clear();
+            foreach (var module in modules)
+            {
+                Modules.Add(module);
+            }
+        }
+        catch
+        {
+            // Defensive: Bei Fehler einfach leer lassen
+        }
     }
 }

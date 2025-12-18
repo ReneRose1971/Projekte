@@ -2,6 +2,7 @@ using Common.Bootstrap;
 using Microsoft.Extensions.DependencyInjection;
 using Scriptum.Wpf.Keyboard.ViewModels;
 using Scriptum.Wpf.Navigation;
+using Scriptum.Wpf.Projections.Services;
 using Scriptum.Wpf.ViewModels;
 
 namespace Scriptum.Wpf.DI;
@@ -26,6 +27,10 @@ public sealed class ScriptumWpfServiceModule : IServiceModule
     {
         services.AddSingleton<IKeyChordAdapter, WpfKeyChordAdapter>();
         services.AddSingleton<VisualKeyboardViewModel>();
+        
+        services.AddSingleton<IContentQueryService, ContentQueryService>();
+        services.AddSingleton<ISessionQueryService, SessionQueryService>();
+        services.AddSingleton<IStatisticsQueryService, StatisticsQueryService>();
         
         services.AddSingleton<ShellViewModel>();
         services.AddSingleton<INavigationService, NavigationService>();

@@ -38,7 +38,7 @@ public interface INavigationService
     /// <summary>
     /// Navigiert zur Trainings-Zusammenfassung.
     /// </summary>
-    void NavigateToTrainingSummary(string? sessionId = null);
+    void NavigateToTrainingSummary(int? sessionId = null);
 
     /// <summary>
     /// Navigiert zur Session-Verlaufsansicht.
@@ -48,7 +48,7 @@ public interface INavigationService
     /// <summary>
     /// Navigiert zu den Details einer Session.
     /// </summary>
-    void NavigateToSessionDetail(string sessionId);
+    void NavigateToSessionDetail(int sessionId);
 
     /// <summary>
     /// Navigiert zum Statistik-Dashboard.

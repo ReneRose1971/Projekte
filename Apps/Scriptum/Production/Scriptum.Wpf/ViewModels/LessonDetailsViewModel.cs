@@ -1,9 +1,8 @@
 using System;
-using System.Linq;
-using DataToolKit.Abstractions.DataStores;
 using PropertyChanged;
-using Scriptum.Content.Data;
 using Scriptum.Wpf.Navigation;
+using Scriptum.Wpf.Projections;
+using Scriptum.Wpf.Projections.Services;
 
 namespace Scriptum.Wpf.ViewModels;
 
@@ -14,24 +13,21 @@ namespace Scriptum.Wpf.ViewModels;
 public sealed class LessonDetailsViewModel
 {
     private readonly INavigationService _navigationService;
-    private readonly IDataStore<LessonData> _lessonDataStore;
-    private readonly IDataStore<LessonGuideData> _guideDataStore;
+    private readonly IContentQueryService _contentQuery;
 
     public LessonDetailsViewModel(
         INavigationService navigationService,
-        IDataStore<LessonData> lessonDataStore,
-        IDataStore<LessonGuideData> guideDataStore)
+        IContentQueryService contentQuery)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
-        _lessonDataStore = lessonDataStore ?? throw new ArgumentNullException(nameof(lessonDataStore));
-        _guideDataStore = guideDataStore ?? throw new ArgumentNullException(nameof(guideDataStore));
+        _contentQuery = contentQuery ?? throw new ArgumentNullException(nameof(contentQuery));
     }
 
     public string ModuleId { get; private set; } = string.Empty;
     public string LessonId { get; private set; } = string.Empty;
     public string Titel { get; private set; } = string.Empty;
     public string Beschreibung { get; private set; } = string.Empty;
-    public int Schwierigkeit { get; private set; }
+    public string PreviewText { get; private set; } = string.Empty;
     public bool HasGuide { get; private set; }
 
     public void Initialize(string moduleId, string lessonId)
@@ -39,20 +35,7 @@ public sealed class LessonDetailsViewModel
         ModuleId = moduleId;
         LessonId = lessonId;
 
-        var lesson = _lessonDataStore.Items.FirstOrDefault(l => l.LessonId == lessonId);
-        if (lesson != null)
-        {
-            Titel = lesson.Titel;
-            Beschreibung = lesson.Beschreibung;
-            Schwierigkeit = lesson.Schwierigkeit;
-        }
-        else
-        {
-            Titel = "Unbekannte Lektion";
-            Beschreibung = string.Empty;
-        }
-
-        HasGuide = _guideDataStore.Items.Any(g => g.LessonId == lessonId);
+        _ = LoadDetailsAsync(moduleId, lessonId);
     }
 
     public void ShowGuide()
@@ -69,5 +52,35 @@ public sealed class LessonDetailsViewModel
     public void NavigateBack()
     {
         _navigationService.NavigateToLessonList(ModuleId);
+    }
+
+    private async System.Threading.Tasks.Task LoadDetailsAsync(string moduleId, string lessonId)
+    {
+        try
+        {
+            var details = await _contentQuery.GetLessonDetailsAsync(moduleId, lessonId);
+
+            if (details != null)
+            {
+                Titel = details.Title;
+                Beschreibung = details.Description ?? string.Empty;
+                PreviewText = details.PreviewText;
+                HasGuide = details.HasGuide;
+            }
+            else
+            {
+                Titel = "Lektion nicht gefunden";
+                Beschreibung = string.Empty;
+                PreviewText = string.Empty;
+                HasGuide = false;
+            }
+        }
+        catch
+        {
+            Titel = "Fehler beim Laden";
+            Beschreibung = string.Empty;
+            PreviewText = string.Empty;
+            HasGuide = false;
+        }
     }
 }

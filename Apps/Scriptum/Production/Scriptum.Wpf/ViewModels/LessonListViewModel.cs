@@ -1,11 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
-using DataToolKit.Abstractions.DataStores;
 using PropertyChanged;
-using Scriptum.Content.Data;
 using Scriptum.Wpf.Navigation;
 using Scriptum.Wpf.Projections;
+using Scriptum.Wpf.Projections.Services;
 
 namespace Scriptum.Wpf.ViewModels;
 
@@ -16,17 +14,14 @@ namespace Scriptum.Wpf.ViewModels;
 public sealed class LessonListViewModel
 {
     private readonly INavigationService _navigationService;
-    private readonly IDataStore<LessonData> _lessonDataStore;
-    private readonly IDataStore<ModuleData> _moduleDataStore;
+    private readonly IContentQueryService _contentQuery;
 
     public LessonListViewModel(
         INavigationService navigationService,
-        IDataStore<LessonData> lessonDataStore,
-        IDataStore<ModuleData> moduleDataStore)
+        IContentQueryService contentQuery)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
-        _lessonDataStore = lessonDataStore ?? throw new ArgumentNullException(nameof(lessonDataStore));
-        _moduleDataStore = moduleDataStore ?? throw new ArgumentNullException(nameof(moduleDataStore));
+        _contentQuery = contentQuery ?? throw new ArgumentNullException(nameof(contentQuery));
 
         Lessons = new ObservableCollection<LessonListItem>();
     }
@@ -38,21 +33,7 @@ public sealed class LessonListViewModel
     public void Initialize(string moduleId)
     {
         ModuleId = moduleId;
-
-        var module = _moduleDataStore.Items.FirstOrDefault(m => m.ModuleId == moduleId);
-        ModuleTitel = module?.Titel ?? "Unbekanntes Modul";
-
-        Lessons.Clear();
-        var lessons = _lessonDataStore.Items
-            .Where(l => l.ModuleId == moduleId)
-            .OrderBy(l => l.Schwierigkeit)
-            .ThenBy(l => l.Titel)
-            .Select(l => new LessonListItem(l.LessonId, l.Titel, l.Beschreibung, l.Schwierigkeit));
-
-        foreach (var lesson in lessons)
-        {
-            Lessons.Add(lesson);
-        }
+        _ = LoadLessonsAsync(moduleId);
     }
 
     public void ShowDetails(LessonListItem lesson)
@@ -70,5 +51,25 @@ public sealed class LessonListViewModel
     public void NavigateBack()
     {
         _navigationService.NavigateToModuleList();
+    }
+
+    private async System.Threading.Tasks.Task LoadLessonsAsync(string moduleId)
+    {
+        try
+        {
+            var lessons = await _contentQuery.GetLessonsByModuleAsync(moduleId);
+            
+            Lessons.Clear();
+            foreach (var lesson in lessons)
+            {
+                Lessons.Add(lesson);
+            }
+
+            ModuleTitel = lessons.Count > 0 ? "Lektionen" : "Keine Lektionen";
+        }
+        catch
+        {
+            ModuleTitel = "Fehler beim Laden";
+        }
     }
 }

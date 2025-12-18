@@ -17,10 +17,10 @@ public sealed class TrainingSummaryViewModel
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
     }
 
-    public string? SessionId { get; private set; }
+    public int? SessionId { get; private set; }
     public string SummaryText { get; private set; } = "TODO: Session-Kennzahlen anzeigen";
 
-    public void Initialize(string? sessionId)
+    public void Initialize(int? sessionId)
     {
         SessionId = sessionId;
     }

@@ -1,9 +1,7 @@
 using System;
-using System.Linq;
-using DataToolKit.Abstractions.DataStores;
 using PropertyChanged;
-using Scriptum.Content.Data;
 using Scriptum.Wpf.Navigation;
+using Scriptum.Wpf.Projections.Services;
 
 namespace Scriptum.Wpf.ViewModels;
 
@@ -14,17 +12,14 @@ namespace Scriptum.Wpf.ViewModels;
 public sealed class LessonGuideViewModel
 {
     private readonly INavigationService _navigationService;
-    private readonly IDataStore<LessonGuideData> _guideDataStore;
-    private readonly IDataStore<LessonData> _lessonDataStore;
+    private readonly IContentQueryService _contentQuery;
 
     public LessonGuideViewModel(
         INavigationService navigationService,
-        IDataStore<LessonGuideData> guideDataStore,
-        IDataStore<LessonData> lessonDataStore)
+        IContentQueryService contentQuery)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
-        _guideDataStore = guideDataStore ?? throw new ArgumentNullException(nameof(guideDataStore));
-        _lessonDataStore = lessonDataStore ?? throw new ArgumentNullException(nameof(lessonDataStore));
+        _contentQuery = contentQuery ?? throw new ArgumentNullException(nameof(contentQuery));
     }
 
     public string LessonId { get; private set; } = string.Empty;
@@ -34,24 +29,35 @@ public sealed class LessonGuideViewModel
     public void Initialize(string lessonId)
     {
         LessonId = lessonId;
-
-        var lesson = _lessonDataStore.Items.FirstOrDefault(l => l.LessonId == lessonId);
-        Titel = lesson?.Titel ?? "Unbekannte Lektion";
-
-        var guide = _guideDataStore.Items.FirstOrDefault(g => g.LessonId == lessonId);
-        GuideText = guide?.GuideTextMarkdown ?? "Keine Anleitung verfügbar.";
+        _ = LoadGuideAsync(lessonId);
     }
 
     public void NavigateBack()
     {
-        var lesson = _lessonDataStore.Items.FirstOrDefault(l => l.LessonId == LessonId);
-        if (lesson != null)
+        _navigationService.NavigateToHome();
+    }
+
+    private async System.Threading.Tasks.Task LoadGuideAsync(string lessonId)
+    {
+        try
         {
-            _navigationService.NavigateToLessonDetails(lesson.ModuleId, LessonId);
+            var guide = await _contentQuery.GetLessonGuideAsync(lessonId);
+
+            if (guide != null)
+            {
+                Titel = guide.Title;
+                GuideText = guide.GuideText;
+            }
+            else
+            {
+                Titel = "Anleitung nicht gefunden";
+                GuideText = "Keine Anleitung verfügbar.";
+            }
         }
-        else
+        catch
         {
-            _navigationService.NavigateToHome();
+            Titel = "Fehler";
+            GuideText = "Fehler beim Laden der Anleitung.";
         }
     }
 }

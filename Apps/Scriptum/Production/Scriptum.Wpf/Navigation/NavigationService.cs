@@ -29,12 +29,12 @@ public sealed class NavigationService : INavigationService
     public void NavigateToTraining(string moduleId, string lessonId) 
         => _shellViewModel.ShowTraining(moduleId, lessonId);
 
-    public void NavigateToTrainingSummary(string? sessionId = null) 
+    public void NavigateToTrainingSummary(int? sessionId = null) 
         => _shellViewModel.ShowTrainingSummary(sessionId);
 
     public void NavigateToSessionHistory() => _shellViewModel.ShowSessionHistory();
 
-    public void NavigateToSessionDetail(string sessionId) => _shellViewModel.ShowSessionDetail(sessionId);
+    public void NavigateToSessionDetail(int sessionId) => _shellViewModel.ShowSessionDetail(sessionId);
 
     public void NavigateToStatisticsDashboard() => _shellViewModel.ShowStatisticsDashboard();
 

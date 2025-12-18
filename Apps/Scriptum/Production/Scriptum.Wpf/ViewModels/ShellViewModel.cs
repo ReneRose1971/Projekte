@@ -60,7 +60,7 @@ public sealed class ShellViewModel
         CurrentViewModel = vm;
     }
 
-    public void ShowTrainingSummary(string? sessionId = null)
+    public void ShowTrainingSummary(int? sessionId = null)
     {
         var vm = _serviceProvider.GetRequiredService<TrainingSummaryViewModel>();
         vm.Initialize(sessionId);
@@ -72,7 +72,7 @@ public sealed class ShellViewModel
         CurrentViewModel = _serviceProvider.GetRequiredService<SessionHistoryViewModel>();
     }
 
-    public void ShowSessionDetail(string sessionId)
+    public void ShowSessionDetail(int sessionId)
     {
         var vm = _serviceProvider.GetRequiredService<SessionDetailViewModel>();
         vm.Initialize(sessionId);
