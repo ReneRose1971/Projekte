@@ -27,9 +27,10 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0">
-                            <TextBlock Text="{Binding Titel}" FontWeight="Bold"/>
-                            <TextBlock Text="{Binding Beschreibung}" Foreground="Gray"/>
-                            <TextBlock Text="{Binding Schwierigkeit, StringFormat='Schwierigkeit: {0}'}" FontSize="10" Foreground="DarkGray"/>
+                            <TextBlock Text="{Binding Title}" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Description}" Foreground="Gray"/>
+                            <TextBlock Text="{Binding TargetLength, StringFormat='Zeichen: {0}'}" 
+                                       FontSize="11" Foreground="DarkGray" Margin="0,2,0,0"/>
                         </StackPanel>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                             <Button Content="Details" Width="70" Margin="5,0" Click="DetailsButton_Click" Tag="{Binding}"/>

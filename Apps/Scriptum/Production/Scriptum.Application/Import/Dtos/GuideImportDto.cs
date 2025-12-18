@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Scriptum.Application.Import.Dtos;
 
 /// <summary>
@@ -5,7 +7,27 @@ namespace Scriptum.Application.Import.Dtos;
 /// </summary>
 public sealed class GuideImportDto
 {
+    [JsonPropertyName("LessonId")]
     public string? LessonId { get; set; }
-    public string? LessonTitel { get; set; }
-    public string GuideTextMarkdown { get; set; } = string.Empty;
+    
+    [JsonPropertyName("Title")]
+    public string? Title { get; set; }
+    
+    [JsonPropertyName("BodyMarkDown")]
+    public string BodyMarkDown { get; set; } = string.Empty;
+    
+    // Für Abwärtskompatibilität
+    [JsonIgnore]
+    public string? LessonTitel
+    {
+        get => Title;
+        set => Title = value;
+    }
+    
+    [JsonIgnore]
+    public string GuideTextMarkdown
+    {
+        get => BodyMarkDown;
+        set => BodyMarkDown = value;
+    }
 }

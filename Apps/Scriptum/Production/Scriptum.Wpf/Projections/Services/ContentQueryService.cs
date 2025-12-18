@@ -1,4 +1,7 @@
 using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Abstractions.DI;
+using DataToolKit.Storage.DataStores;
+using DataToolKit.Storage.Repositories;
 using Scriptum.Content.Data;
 using Scriptum.Progress;
 using Scriptum.Wpf.Projections;
@@ -11,21 +14,48 @@ namespace Scriptum.Wpf.Projections.Services;
 /// </summary>
 internal sealed class ContentQueryService : IContentQueryService
 {
-    private readonly IDataStore<ModuleData> _moduleStore;
-    private readonly IDataStore<LessonData> _lessonStore;
-    private readonly IDataStore<LessonGuideData> _guideStore;
-    private readonly IDataStore<TrainingSession> _sessionStore;
+    private readonly PersistentDataStore<ModuleData> _moduleStore;
+    private readonly PersistentDataStore<LessonData> _lessonStore;
+    private readonly PersistentDataStore<LessonGuideData> _guideStore;
+    private readonly PersistentDataStore<TrainingSession> _sessionStore;
 
+    /// <summary>
+    /// Erstellt eine neue Instanz des ContentQueryService.
+    /// </summary>
+    /// <param name="dataStoreProvider">Provider für DataStores.</param>
+    /// <param name="repositoryFactory">Factory für Repositories.</param>
     public ContentQueryService(
-        IDataStore<ModuleData> moduleStore,
-        IDataStore<LessonData> lessonStore,
-        IDataStore<LessonGuideData> guideStore,
-        IDataStore<TrainingSession> sessionStore)
+        IDataStoreProvider dataStoreProvider,
+        IRepositoryFactory repositoryFactory)
     {
-        _moduleStore = moduleStore ?? throw new ArgumentNullException(nameof(moduleStore));
-        _lessonStore = lessonStore ?? throw new ArgumentNullException(nameof(lessonStore));
-        _guideStore = guideStore ?? throw new ArgumentNullException(nameof(guideStore));
-        _sessionStore = sessionStore ?? throw new ArgumentNullException(nameof(sessionStore));
+        if (dataStoreProvider == null)
+            throw new ArgumentNullException(nameof(dataStoreProvider));
+        if (repositoryFactory == null)
+            throw new ArgumentNullException(nameof(repositoryFactory));
+
+        _moduleStore = dataStoreProvider.GetPersistent<ModuleData>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
+
+        _lessonStore = dataStoreProvider.GetPersistent<LessonData>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
+
+        _guideStore = dataStoreProvider.GetPersistent<LessonGuideData>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
+
+        _sessionStore = dataStoreProvider.GetPersistent<TrainingSession>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
     }
 
     public Task<IReadOnlyList<ModuleListItem>> GetModulesAsync(CancellationToken ct = default)

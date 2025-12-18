@@ -1,4 +1,7 @@
 using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Abstractions.DI;
+using DataToolKit.Storage.DataStores;
+using DataToolKit.Storage.Repositories;
 using Scriptum.Content.Data;
 using Scriptum.Core;
 using Scriptum.Progress;
@@ -12,18 +15,41 @@ namespace Scriptum.Wpf.Projections.Services;
 /// </summary>
 internal sealed class SessionQueryService : ISessionQueryService
 {
-    private readonly IDataStore<TrainingSession> _sessionStore;
-    private readonly IDataStore<ModuleData> _moduleStore;
-    private readonly IDataStore<LessonData> _lessonStore;
+    private readonly PersistentDataStore<TrainingSession> _sessionStore;
+    private readonly PersistentDataStore<ModuleData> _moduleStore;
+    private readonly PersistentDataStore<LessonData> _lessonStore;
 
+    /// <summary>
+    /// Erstellt eine neue Instanz des SessionQueryService.
+    /// </summary>
+    /// <param name="dataStoreProvider">Provider für DataStores.</param>
+    /// <param name="repositoryFactory">Factory für Repositories.</param>
     public SessionQueryService(
-        IDataStore<TrainingSession> sessionStore,
-        IDataStore<ModuleData> moduleStore,
-        IDataStore<LessonData> lessonStore)
+        IDataStoreProvider dataStoreProvider,
+        IRepositoryFactory repositoryFactory)
     {
-        _sessionStore = sessionStore ?? throw new ArgumentNullException(nameof(sessionStore));
-        _moduleStore = moduleStore ?? throw new ArgumentNullException(nameof(moduleStore));
-        _lessonStore = lessonStore ?? throw new ArgumentNullException(nameof(lessonStore));
+        if (dataStoreProvider == null)
+            throw new ArgumentNullException(nameof(dataStoreProvider));
+        if (repositoryFactory == null)
+            throw new ArgumentNullException(nameof(repositoryFactory));
+
+        _sessionStore = dataStoreProvider.GetPersistent<TrainingSession>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
+
+        _moduleStore = dataStoreProvider.GetPersistent<ModuleData>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
+
+        _lessonStore = dataStoreProvider.GetPersistent<LessonData>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
     }
 
     public Task<IReadOnlyList<SessionListItem>> GetRecentSessionsAsync(int take, CancellationToken ct = default)

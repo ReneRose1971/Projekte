@@ -19,8 +19,10 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Margin="5">
-                        <TextBlock Text="{Binding Titel}" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding Beschreibung}" Foreground="Gray"/>
+                        <TextBlock Text="{Binding Title}" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding Description}" Foreground="Gray"/>
+                        <TextBlock Text="{Binding LessonCount, StringFormat='Lektionen: {0}'}" 
+                                   FontSize="11" Foreground="DarkGray" Margin="0,2,0,0"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>

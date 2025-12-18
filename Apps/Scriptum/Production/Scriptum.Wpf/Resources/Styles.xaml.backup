@@ -22,15 +22,6 @@
         <Setter Property="FontWeight" Value="Medium"/>
     </Style>
 
-    <Style x:Key="PageTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource TitleTextStyle}">
-        <Setter Property="Margin" Value="0,0,0,8"/>
-    </Style>
-
-    <Style x:Key="PageSubtitleStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
-        <Setter Property="FontSize" Value="14"/>
-        <Setter Property="Foreground" Value="{StaticResource Text.Secondary}"/>
-    </Style>
-
     <Style x:Key="CaptionTextStyle" TargetType="TextBlock" BasedOn="{StaticResource BaseTextStyle}">
         <Setter Property="FontSize" Value="12"/>
         <Setter Property="Foreground" Value="{StaticResource Text.Secondary}"/>

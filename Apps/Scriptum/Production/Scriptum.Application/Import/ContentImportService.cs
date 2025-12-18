@@ -96,10 +96,21 @@ public sealed class ContentImportService : IContentImportService
         }
         catch (JsonException ex)
         {
+            var detailedMessage = "Ungültiges JSON-Format. Die JSON-Dateien müssen als Array/Liste strukturiert sein.\n\n" +
+                "Erwartetes Format für Module:\n" +
+                "[\n" +
+                "  {\n" +
+                "    \"ModuleId\": \"M01\",\n" +
+                "    \"Titel\": \"Modul 1\",\n" +
+                "    \"Beschreibung\": \"Beschreibung\"\n" +
+                "  }\n" +
+                "]\n\n" +
+                $"Technische Details: {ex.Message}";
+
             return new ContentImportResult
             {
                 Success = false,
-                ErrorMessage = $"Ungültiges JSON-Format: {ex.Message}"
+                ErrorMessage = detailedMessage
             };
         }
         catch (Exception ex)
@@ -155,7 +166,23 @@ public sealed class ContentImportService : IContentImportService
             throw new FileNotFoundException($"Modul-Datei nicht gefunden: {path}");
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);
-        return JsonSerializer.Deserialize<List<ModuleImportDto>>(json) ?? new List<ModuleImportDto>();
+        
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        // Fall 1: Direkt ein Array
+        if (root.ValueKind == JsonValueKind.Array)
+        {
+            return JsonSerializer.Deserialize<List<ModuleImportDto>>(json) ?? new List<ModuleImportDto>();
+        }
+
+        // Fall 2: Objekt mit "Modules"-Property
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("Modules", out var modulesElement))
+        {
+            return JsonSerializer.Deserialize<List<ModuleImportDto>>(modulesElement.GetRawText()) ?? new List<ModuleImportDto>();
+        }
+
+        throw new JsonException("Ungültiges JSON-Format: Erwarte Array oder Objekt mit 'Modules'-Property");
     }
 
     private static async Task<List<LessonImportDto>> LoadLessonImportsAsync(
@@ -166,7 +193,23 @@ public sealed class ContentImportService : IContentImportService
             throw new FileNotFoundException($"Lektions-Datei nicht gefunden: {path}");
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);
-        return JsonSerializer.Deserialize<List<LessonImportDto>>(json) ?? new List<LessonImportDto>();
+        
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        // Fall 1: Direkt ein Array
+        if (root.ValueKind == JsonValueKind.Array)
+        {
+            return JsonSerializer.Deserialize<List<LessonImportDto>>(json) ?? new List<LessonImportDto>();
+        }
+
+        // Fall 2: Objekt mit "Lessons"-Property
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("Lessons", out var lessonsElement))
+        {
+            return JsonSerializer.Deserialize<List<LessonImportDto>>(lessonsElement.GetRawText()) ?? new List<LessonImportDto>();
+        }
+
+        throw new JsonException("Ungültiges JSON-Format: Erwarte Array oder Objekt mit 'Lessons'-Property");
     }
 
     private static async Task<List<GuideImportDto>> LoadGuideImportsAsync(
@@ -177,7 +220,29 @@ public sealed class ContentImportService : IContentImportService
             throw new FileNotFoundException($"Guide-Datei nicht gefunden: {path}");
 
         var json = await File.ReadAllTextAsync(path, cancellationToken);
-        return JsonSerializer.Deserialize<List<GuideImportDto>>(json) ?? new List<GuideImportDto>();
+        
+        using var doc = JsonDocument.Parse(json);
+        var root = doc.RootElement;
+
+        // Fall 1: Direkt ein Array
+        if (root.ValueKind == JsonValueKind.Array)
+        {
+            return JsonSerializer.Deserialize<List<GuideImportDto>>(json) ?? new List<GuideImportDto>();
+        }
+
+        // Fall 2: Objekt mit "LessonGuides"-Property
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("LessonGuides", out var guidesElement))
+        {
+            return JsonSerializer.Deserialize<List<GuideImportDto>>(guidesElement.GetRawText()) ?? new List<GuideImportDto>();
+        }
+
+        // Fall 3: Objekt mit "Guides"-Property (Fallback)
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("Guides", out guidesElement))
+        {
+            return JsonSerializer.Deserialize<List<GuideImportDto>>(guidesElement.GetRawText()) ?? new List<GuideImportDto>();
+        }
+
+        throw new JsonException("Ungültiges JSON-Format: Erwarte Array oder Objekt mit 'LessonGuides'-Property");
     }
 
     private static List<ModuleData> MapModules(List<ModuleImportDto> imports)

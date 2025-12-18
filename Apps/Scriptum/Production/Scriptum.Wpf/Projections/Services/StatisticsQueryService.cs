@@ -1,4 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Storage.Repositories;
 using Scriptum.Content.Data;
 using Scriptum.Core;
 using Scriptum.Progress;
@@ -11,23 +18,43 @@ namespace Scriptum.Wpf.Projections.Services;
 /// </summary>
 internal sealed class StatisticsQueryService : IStatisticsQueryService
 {
-    private readonly IDataStore<TrainingSession> _sessionStore;
-    private readonly IDataStore<ModuleData> _moduleStore;
-    private readonly IDataStore<LessonData> _lessonStore;
+    private readonly ReadOnlyObservableCollection<TrainingSession> _sessions;
+    private readonly ReadOnlyObservableCollection<ModuleData> _modules;
+    private readonly ReadOnlyObservableCollection<LessonData> _lessons;
 
     public StatisticsQueryService(
-        IDataStore<TrainingSession> sessionStore,
-        IDataStore<ModuleData> moduleStore,
-        IDataStore<LessonData> lessonStore)
+        IDataStoreProvider dataStoreProvider,
+        IRepositoryFactory repositoryFactory)
     {
-        _sessionStore = sessionStore ?? throw new ArgumentNullException(nameof(sessionStore));
-        _moduleStore = moduleStore ?? throw new ArgumentNullException(nameof(moduleStore));
-        _lessonStore = lessonStore ?? throw new ArgumentNullException(nameof(lessonStore));
+        if (dataStoreProvider == null) throw new ArgumentNullException(nameof(dataStoreProvider));
+        if (repositoryFactory == null) throw new ArgumentNullException(nameof(repositoryFactory));
+
+        var sessionStore = dataStoreProvider.GetPersistent<TrainingSession>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
+
+        var moduleStore = dataStoreProvider.GetPersistent<ModuleData>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
+
+        var lessonStore = dataStoreProvider.GetPersistent<LessonData>(
+            repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: true);
+
+        _sessions = sessionStore.Items;
+        _modules = moduleStore.Items;
+        _lessons = lessonStore.Items;
     }
 
     public Task<StatisticsDashboardModel> BuildDashboardAsync(StatisticsFilter filter, CancellationToken ct = default)
     {
-        var sessions = ApplyFilter(_sessionStore.Items, filter).ToList();
+        var sessions = ApplyFilter(_sessions, filter).ToList();
 
         var moduleStats = BuildModuleStats(sessions);
         var lessonStats = BuildLessonStats(sessions);
@@ -38,7 +65,7 @@ internal sealed class StatisticsQueryService : IStatisticsQueryService
 
     public Task<ErrorHeatmapModel> BuildErrorHeatmapAsync(StatisticsFilter filter, CancellationToken ct = default)
     {
-        var sessions = ApplyFilter(_sessionStore.Items, filter).ToList();
+        var sessions = ApplyFilter(_sessions, filter).ToList();
 
         var errorGroups = sessions
             .SelectMany(s => s.Evaluations)
@@ -85,7 +112,7 @@ internal sealed class StatisticsQueryService : IStatisticsQueryService
             .Select(g =>
             {
                 var moduleId = g.Key;
-                var moduleTitle = _moduleStore.Items.FirstOrDefault(m => m.ModuleId == moduleId)?.Titel ?? moduleId;
+                var moduleTitle = _modules.FirstOrDefault(m => m.ModuleId == moduleId)?.Titel ?? moduleId;
 
                 var completedSessions = g.Where(s => s.IsCompleted).ToList();
                 var avgErrors = g.Any() ? g.Average(s => s.Evaluations.Count(e => e.Ergebnis == EvaluationOutcome.Falsch)) : 0.0;
@@ -127,7 +154,7 @@ internal sealed class StatisticsQueryService : IStatisticsQueryService
             {
                 var lessonId = g.Key.LessonId;
                 var moduleId = g.Key.ModuleId;
-                var lessonTitle = _lessonStore.Items.FirstOrDefault(l => l.LessonId == lessonId)?.Titel ?? lessonId;
+                var lessonTitle = _lessons.FirstOrDefault(l => l.LessonId == lessonId)?.Titel ?? lessonId;
 
                 var completedSessions = g.Where(s => s.IsCompleted).ToList();
                 var avgErrors = g.Any() ? g.Average(s => s.Evaluations.Count(e => e.Ergebnis == EvaluationOutcome.Falsch)) : 0.0;

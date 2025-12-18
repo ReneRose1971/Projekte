@@ -24,6 +24,8 @@ public sealed class ContentImportViewModel
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _importService = importService ?? throw new ArgumentNullException(nameof(importService));
+        
+        OutputFolderPath = GetOutputFolderPath();
     }
 
     public string ModulesPath { get; set; } = string.Empty;
@@ -34,7 +36,7 @@ public sealed class ContentImportViewModel
     public string StatusText { get; private set; } = "Bereit für Import";
     public ObservableCollection<string> Warnings { get; } = new();
     public ContentImportResult? LastResult { get; private set; }
-    public string OutputFolderPath { get; private set; } = string.Empty;
+    public string OutputFolderPath { get; private set; }
 
     public bool CanImport => !IsBusy 
         && !string.IsNullOrWhiteSpace(ModulesPath) 
@@ -158,5 +160,11 @@ public sealed class ContentImportViewModel
         };
 
         return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
+
+    private static string GetOutputFolderPath()
+    {
+        var appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        return Path.Combine(appData, "Scriptum", "Content");
     }
 }

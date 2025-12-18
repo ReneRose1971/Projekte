@@ -12,28 +12,17 @@
         <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Foreground" Value="{StaticResource Text.Primary}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
             <Setter Property="Margin" Value="0,0,0,12"/>
         </Style>
 
         <Style x:Key="FileSelectorStyle" TargetType="Border">
-            <Setter Property="Background" Value="{StaticResource Content.Background}"/>
-            <Setter Property="BorderBrush" Value="{StaticResource Border.Light}"/>
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="CornerRadius" Value="4"/>
             <Setter Property="Padding" Value="16"/>
             <Setter Property="Margin" Value="0,0,0,12"/>
-        </Style>
-
-        <Style x:Key="ImportButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
-            <Setter Property="MinHeight" Value="40"/>
-            <Style.Triggers>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Background" Value="#CCCCCC"/>
-                    <Setter Property="Foreground" Value="#888888"/>
-                    <Setter Property="Opacity" Value="1"/>
-                </Trigger>
-            </Style.Triggers>
         </Style>
     </UserControl.Resources>
 
@@ -159,8 +148,8 @@
 
         <!-- Results Area -->
         <Border Grid.Row="2" 
-                Background="{StaticResource Content.Background}"
-                BorderBrush="{StaticResource Border.Light}"
+                Background="{StaticResource CardBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
                 BorderThickness="1"
                 CornerRadius="4"
                 Padding="16"
@@ -177,7 +166,7 @@
                     <TextBlock Text="Status"
                                Style="{StaticResource SectionHeaderStyle}"/>
                     <TextBlock Text="{Binding StatusText}"
-                               Foreground="{StaticResource Text.Secondary}"
+                               Foreground="{StaticResource SecondaryTextBrush}"
                                TextWrapping="Wrap"/>
                 </StackPanel>
 
@@ -205,7 +194,7 @@
                     <TextBlock Text="Zielordner"
                                Style="{StaticResource SectionHeaderStyle}"/>
                     <TextBlock Text="{Binding OutputFolderPath}"
-                               Foreground="{StaticResource Text.Secondary}"
+                               Foreground="{StaticResource SecondaryTextBrush}"
                                TextWrapping="Wrap"/>
                 </StackPanel>
             </Grid>
@@ -223,17 +212,14 @@
                     Content="Zur&#252;ck"
                     Click="GoBack_Click"
                     Style="{StaticResource SecondaryButtonStyle}"
-                    MinHeight="40"
                     Width="120"/>
 
             <Button Grid.Column="2"
                     Content="Import starten"
                     Click="Import_Click"
                     IsEnabled="{Binding CanImport}"
-                    Style="{StaticResource ImportButtonStyle}"
-                    MinHeight="40"
-                    Width="140"
-                    ToolTip="W&#228;hlen Sie alle drei JSON-Dateien aus, um den Import zu starten"/>
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Width="140"/>
         </Grid>
 
         <!-- Busy Indicator -->
