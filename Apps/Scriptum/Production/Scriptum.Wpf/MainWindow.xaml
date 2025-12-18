@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:keyboard="clr-namespace:Scriptum.Wpf.Keyboard.Controls;assembly=Scriptum.Wpf.Keyboard"
         mc:Ignorable="d"
-        Title="Scriptum - Visuelle Tastatur Demo" Height="600" Width="1000"
+        Title="Scriptum Discipulus" Height="600" Width="1000"
         PreviewKeyDown="Window_PreviewKeyDown"
         PreviewKeyUp="Window_PreviewKeyUp">
     <Grid Margin="10">
@@ -17,20 +17,29 @@
         
         <!-- Info-Bereich -->
         <StackPanel Grid.Row="0" Margin="0,0,0,10">
-            <TextBlock Text="Visuelle deutsche QWERTZ-Tastatur" 
+            <TextBlock Text="Scriptum Discipulus - Tipptrainer fuer DE-QWERTZ" 
                        FontSize="16" FontWeight="SemiBold" Margin="0,0,0,5"/>
-            <TextBlock Text="Druecken Sie beliebige Tasten - die Tastatur zeigt die gedrueckten Tasten an." 
+            <TextBlock Text="{Binding StatusText}" 
                        Foreground="Gray"/>
         </StackPanel>
         
-        <!-- Test-Textfeld -->
+        <!-- Training-Status -->
         <Border Grid.Row="1" BorderBrush="#D1D5DB" BorderThickness="1" 
                 CornerRadius="4" Padding="8" Margin="0,0,0,10">
-            <TextBox x:Name="TestTextBox" 
-                     Text="Hier tippen, um die visuelle Tastatur zu testen..."
-                     FontSize="14"
-                     BorderThickness="0"
-                     Background="Transparent"/>
+            <StackPanel>
+                <TextBlock>
+                    <Run Text="Session laeuft: "/>
+                    <Run Text="{Binding IsSessionRunning}" FontWeight="Bold"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Aktueller Index: "/>
+                    <Run Text="{Binding CurrentIndex}" FontWeight="Bold"/>
+                </TextBlock>
+                <TextBlock>
+                    <Run Text="Fehler: "/>
+                    <Run Text="{Binding ErrorCount}" FontWeight="Bold"/>
+                </TextBlock>
+            </StackPanel>
         </Border>
         
         <!-- Visuelle Tastatur -->

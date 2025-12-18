@@ -20,6 +20,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\Common.BootStrap\Common.BootStrap.csproj" />
+    <ProjectReference Include="..\..\..\..\DataToolKit\DataToolKit.csproj" />
+    <ProjectReference Include="..\Scriptum.Application\Scriptum.Application.csproj" />
+    <ProjectReference Include="..\Scriptum.Core\Scriptum.Core.csproj" />
+    <ProjectReference Include="..\Scriptum.Persistence\Scriptum.Persistence.csproj" />
     <ProjectReference Include="..\Scriptum.Wpf.Keyboard\Scriptum.Wpf.Keyboard.csproj" />
   </ItemGroup>
 
