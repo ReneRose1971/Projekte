@@ -1,5 +1,6 @@
 using Common.Bootstrap;
 using Microsoft.Extensions.DependencyInjection;
+using Scriptum.Application.Import;
 using Scriptum.Engine;
 
 namespace Scriptum.Application.DI;
@@ -35,5 +36,6 @@ public sealed class ScriptumApplicationServiceModule : IServiceModule
         services.AddSingleton<IInputInterpreter, DeQwertzInputInterpreter>();
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<ITrainingEngine, TrainingEngine>();
+        services.AddSingleton<IContentImportService, ContentImportService>();
     }
 }

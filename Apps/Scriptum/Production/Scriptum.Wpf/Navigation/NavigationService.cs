@@ -43,4 +43,6 @@ public sealed class NavigationService : INavigationService
     public void NavigateToSettings() => _shellViewModel.ShowSettings();
 
     public void NavigateToContentManagement() => _shellViewModel.ShowContentManagement();
+
+    public void NavigateToContentImport() => _shellViewModel.ShowContentImport();
 }

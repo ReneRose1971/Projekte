@@ -1,0 +1,241 @@
+<UserControl x:Class="Scriptum.Wpf.Views.ContentImportView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Scriptum.Wpf.ViewModels"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=vm:ContentImportViewModel}"
+             d:DesignHeight="700" d:DesignWidth="1000">
+    
+    <UserControl.Resources>
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryTextBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <Style x:Key="FileSelectorStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="16"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,24">
+            <TextBlock Text="Content importieren"
+                       Style="{StaticResource PageTitleStyle}"/>
+            <TextBlock Text="Importieren Sie Module, Lektionen und Anleitungen aus JSON-Dateien"
+                       Style="{StaticResource PageSubtitleStyle}"/>
+        </StackPanel>
+
+        <!-- File Selectors -->
+        <StackPanel Grid.Row="1">
+            <!-- Module -->
+            <Border Style="{StaticResource FileSelectorStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                               Text="Module"
+                               Style="{StaticResource SectionHeaderStyle}"/>
+
+                    <TextBox Grid.Row="1" Grid.Column="0"
+                             Text="{Binding ModulesPath, UpdateSourceTrigger=PropertyChanged}"
+                             IsReadOnly="True"
+                             Margin="0,0,12,0"
+                             VerticalContentAlignment="Center"
+                             Height="36"/>
+
+                    <Button Grid.Row="1" Grid.Column="1"
+                            Content="Durchsuchen..."
+                            Command="{Binding BrowseModulesCommand}"
+                            Click="BrowseModules_Click"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Width="120"/>
+                </Grid>
+            </Border>
+
+            <!-- Lessons -->
+            <Border Style="{StaticResource FileSelectorStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                               Text="Lektionen"
+                               Style="{StaticResource SectionHeaderStyle}"/>
+
+                    <TextBox Grid.Row="1" Grid.Column="0"
+                             Text="{Binding LessonsPath, UpdateSourceTrigger=PropertyChanged}"
+                             IsReadOnly="True"
+                             Margin="0,0,12,0"
+                             VerticalContentAlignment="Center"
+                             Height="36"/>
+
+                    <Button Grid.Row="1" Grid.Column="1"
+                            Content="Durchsuchen..."
+                            Click="BrowseLessons_Click"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Width="120"/>
+                </Grid>
+            </Border>
+
+            <!-- Guides -->
+            <Border Style="{StaticResource FileSelectorStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"
+                               Text="Anleitungen"
+                               Style="{StaticResource SectionHeaderStyle}"/>
+
+                    <TextBox Grid.Row="1" Grid.Column="0"
+                             Text="{Binding GuidesPath, UpdateSourceTrigger=PropertyChanged}"
+                             IsReadOnly="True"
+                             Margin="0,0,12,0"
+                             VerticalContentAlignment="Center"
+                             Height="36"/>
+
+                    <Button Grid.Row="1" Grid.Column="1"
+                            Content="Durchsuchen..."
+                            Click="BrowseGuides_Click"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Width="120"/>
+                </Grid>
+            </Border>
+
+            <!-- Options -->
+            <Border Style="{StaticResource FileSelectorStyle}">
+                <CheckBox Content="Vorhandenen Content &#252;berschreiben"
+                          IsChecked="{Binding OverwriteExisting}"
+                          VerticalAlignment="Center"/>
+            </Border>
+        </StackPanel>
+
+        <!-- Results Area -->
+        <Border Grid.Row="2" 
+                Background="{StaticResource CardBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Padding="16"
+                Margin="0,0,0,24">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Status -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                    <TextBlock Text="Status"
+                               Style="{StaticResource SectionHeaderStyle}"/>
+                    <TextBlock Text="{Binding StatusText}"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+
+                <!-- Warnings -->
+                <StackPanel Grid.Row="1" Margin="0,0,0,16">
+                    <TextBlock Text="Warnungen"
+                               Style="{StaticResource SectionHeaderStyle}"/>
+                    <ListBox ItemsSource="{Binding Warnings}"
+                             BorderThickness="0"
+                             Background="Transparent"
+                             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}"
+                                           Foreground="#FF9800"
+                                           TextWrapping="Wrap"
+                                           Margin="0,2"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+
+                <!-- Output Folder -->
+                <StackPanel Grid.Row="2">
+                    <TextBlock Text="Zielordner"
+                               Style="{StaticResource SectionHeaderStyle}"/>
+                    <TextBlock Text="{Binding OutputFolderPath}"
+                               Foreground="{StaticResource SecondaryTextBrush}"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- Actions -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Button Grid.Column="0"
+                    Content="Zur&#252;ck"
+                    Click="GoBack_Click"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Width="120"/>
+
+            <Button Grid.Column="2"
+                    Content="Import starten"
+                    Click="Import_Click"
+                    IsEnabled="{Binding CanImport}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Width="140"/>
+        </Grid>
+
+        <!-- Busy Indicator -->
+        <Border Grid.Row="0" Grid.RowSpan="4"
+                Background="#80000000"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ProgressBar IsIndeterminate="True"
+                             Width="200"
+                             Height="4"
+                             Margin="0,0,0,16"/>
+                <TextBlock Text="Import l&#228;uft..."
+                           Foreground="White"
+                           FontSize="16"
+                           HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

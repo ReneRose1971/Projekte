@@ -1,0 +1,14 @@
+[
+  {
+    "LessonId": "L01_01",
+    "GuideTextMarkdown": "# Grundstellung\n\nLegen Sie Ihre Finger auf die Grundreihe:\n\n- **Linke Hand**: A S D F\n- **Rechte Hand**: J K L Ö\n\nDie Daumen ruhen auf der Leertaste.\n\n## Tipps\n\n- Schauen Sie nicht auf die Tastatur\n- Halten Sie die Handgelenke gerade\n- Entspannen Sie Ihre Schultern"
+  },
+  {
+    "LessonId": "L01_02",
+    "GuideTextMarkdown": "# G und H\n\nDie Tasten G und H werden mit den Zeigefingern getippt:\n\n- **G**: Linker Zeigefinger\n- **H**: Rechter Zeigefinger\n\n## Übung\n\nNach jedem Anschlag kehren die Finger zur Grundstellung zurück."
+  },
+  {
+    "LessonTitel": "Q W E R",
+    "GuideTextMarkdown": "# Obere Reihe\n\nDie Finger bewegen sich von der Grundreihe nach oben:\n\n- **Q**: Linker kleiner Finger\n- **W**: Linker Ringfinger\n- **E**: Linker Mittelfinger\n- **R**: Linker Zeigefinger"
+  }
+]

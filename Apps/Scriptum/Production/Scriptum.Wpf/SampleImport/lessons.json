@@ -1,0 +1,29 @@
+[
+  {
+    "LessonId": "L01_01",
+    "ModuleId": "M01",
+    "Titel": "Grundstellung ASDF JKL;",
+    "Beschreibung": "Erste Übung mit der Grundreihe",
+    "Schwierigkeit": 1,
+    "Tags": ["grundreihe", "anfänger"],
+    "Uebungstext": "asdf jklö asdf jklö\nff jj dd kk ss ll aa öö"
+  },
+  {
+    "LessonId": "L01_02",
+    "ModuleId": "M01",
+    "Titel": "Grundreihe mit G und H",
+    "Beschreibung": "Erweiterte Übung der Grundreihe",
+    "Schwierigkeit": 2,
+    "Tags": ["grundreihe"],
+    "Uebungstext": "asdfjklö ghgh fdsa\nfghj kjhg asdf jklö"
+  },
+  {
+    "LessonId": "L02_01",
+    "ModuleId": "M02",
+    "Titel": "Q W E R",
+    "Beschreibung": "Obere Reihe links",
+    "Schwierigkeit": 3,
+    "Tags": ["obere-reihe"],
+    "Uebungstext": "qwer qwer asdf\nqwer asdf qwer"
+  }
+]

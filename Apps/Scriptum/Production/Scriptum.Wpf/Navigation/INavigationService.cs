@@ -69,4 +69,9 @@ public interface INavigationService
     /// Navigiert zum Content-Management.
     /// </summary>
     void NavigateToContentManagement();
+
+    /// <summary>
+    /// Navigiert zum Content-Import.
+    /// </summary>
+    void NavigateToContentImport();
 }

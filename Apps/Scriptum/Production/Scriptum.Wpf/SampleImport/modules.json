@@ -1,0 +1,12 @@
+[
+  {
+    "ModuleId": "M01",
+    "Titel": "Grundreihe",
+    "Beschreibung": "Die Grundreihe des deutschen QWERTZ-Layouts"
+  },
+  {
+    "ModuleId": "M02",
+    "Titel": "Obere Reihe",
+    "Beschreibung": "Buchstaben der oberen Tastenreihe"
+  }
+]

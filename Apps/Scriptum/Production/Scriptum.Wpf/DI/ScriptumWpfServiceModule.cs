@@ -23,32 +23,33 @@ namespace Scriptum.Wpf.DI;
 /// </remarks>
 public sealed class ScriptumWpfServiceModule : IServiceModule
 {
-    public void Register(IServiceCollection services)
-    {
-        services.AddSingleton<IKeyChordAdapter, WpfKeyChordAdapter>();
-        services.AddSingleton<VisualKeyboardViewModel>();
-        
-        services.AddSingleton<IContentQueryService, ContentQueryService>();
-        services.AddSingleton<ISessionQueryService, SessionQueryService>();
-        services.AddSingleton<IStatisticsQueryService, StatisticsQueryService>();
-        
-        services.AddSingleton<ShellViewModel>();
-        services.AddSingleton<INavigationService, NavigationService>();
-        
-        services.AddTransient<HomeViewModel>();
-        services.AddTransient<ModuleListViewModel>();
-        services.AddTransient<LessonListViewModel>();
-        services.AddTransient<LessonDetailsViewModel>();
-        services.AddTransient<LessonGuideViewModel>();
-        services.AddTransient<TrainingViewModel>();
-        services.AddTransient<TrainingSummaryViewModel>();
-        services.AddTransient<SessionHistoryViewModel>();
-        services.AddTransient<SessionDetailViewModel>();
-        services.AddTransient<StatisticsDashboardViewModel>();
-        services.AddTransient<ErrorHeatmapViewModel>();
-        services.AddTransient<SettingsViewModel>();
-        services.AddTransient<ContentManagementViewModel>();
-        
-        services.AddTransient<MainWindow>();
-    }
+  public void Register(IServiceCollection services)
+  {
+    services.AddSingleton<IKeyChordAdapter, WpfKeyChordAdapter>();
+    services.AddSingleton<VisualKeyboardViewModel>();
+
+    services.AddSingleton<IContentQueryService, ContentQueryService>();
+    services.AddSingleton<ISessionQueryService, SessionQueryService>();
+    services.AddSingleton<IStatisticsQueryService, StatisticsQueryService>();
+
+    services.AddSingleton<ShellViewModel>();
+    services.AddSingleton<INavigationService, NavigationService>();
+
+    services.AddTransient<HomeViewModel>();
+    services.AddTransient<ModuleListViewModel>();
+    services.AddTransient<LessonListViewModel>();
+    services.AddTransient<LessonDetailsViewModel>();
+    services.AddTransient<LessonGuideViewModel>();
+    services.AddTransient<TrainingViewModel>();
+    services.AddTransient<TrainingSummaryViewModel>();
+    services.AddTransient<SessionHistoryViewModel>();
+    services.AddTransient<SessionDetailViewModel>();
+    services.AddTransient<StatisticsDashboardViewModel>();
+    services.AddTransient<ErrorHeatmapViewModel>();
+    services.AddTransient<SettingsViewModel>();
+    services.AddTransient<ContentManagementViewModel>();
+    services.AddTransient<ContentImportViewModel>();
+
+    services.AddTransient<MainWindow>();
+  }
 }

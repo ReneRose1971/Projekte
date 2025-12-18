@@ -53,6 +53,7 @@ public sealed class ShellViewModel
         
         SecondaryNavigation.Add(new NavigationItem("settings", "Einstellungen", ShowSettings, "\uE713"));
         SecondaryNavigation.Add(new NavigationItem("content", "Inhalte", ShowContentManagement, "\uE8B7"));
+        SecondaryNavigation.Add(new NavigationItem("import", "Content importieren", ShowContentImport, "\uE896"));
         
         PrimaryNavigation[0].IsSelected = true;
     }
@@ -244,5 +245,15 @@ public sealed class ShellViewModel
         SetActiveNavigation("content");
         UpdateBreadcrumbs("Inhalte");
         UpdateStatusBar("Inhaltsverwaltung geladen");
+    }
+
+    public void ShowContentImport()
+    {
+        _history.Clear();
+        CurrentViewModel = _serviceProvider.GetRequiredService<ContentImportViewModel>();
+        CurrentSectionTitle = "Content importieren";
+        SetActiveNavigation("import");
+        UpdateBreadcrumbs("Content importieren");
+        UpdateStatusBar("Import-Werkzeug geladen");
     }
 }

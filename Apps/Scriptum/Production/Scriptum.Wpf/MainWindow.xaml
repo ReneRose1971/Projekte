@@ -61,6 +61,9 @@
         <DataTemplate DataType="{x:Type vm:ContentManagementViewModel}">
             <views:ContentManagementView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ContentImportViewModel}">
+            <views:ContentImportView />
+        </DataTemplate>
     </Window.Resources>
 
     <!-- Main Shell Layout -->
