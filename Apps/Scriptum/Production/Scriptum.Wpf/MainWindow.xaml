@@ -3,49 +3,53 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:keyboard="clr-namespace:Scriptum.Wpf.Keyboard.Controls;assembly=Scriptum.Wpf.Keyboard"
+        xmlns:vm="clr-namespace:Scriptum.Wpf.ViewModels"
+        xmlns:views="clr-namespace:Scriptum.Wpf.Views"
         mc:Ignorable="d"
-        Title="Scriptum Discipulus" Height="600" Width="1000"
-        PreviewKeyDown="Window_PreviewKeyDown"
-        PreviewKeyUp="Window_PreviewKeyUp">
-    <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-        
-        <!-- Info-Bereich -->
-        <StackPanel Grid.Row="0" Margin="0,0,0,10">
-            <TextBlock Text="Scriptum Discipulus - Tipptrainer fuer DE-QWERTZ" 
-                       FontSize="16" FontWeight="SemiBold" Margin="0,0,0,5"/>
-            <TextBlock Text="{Binding StatusText}" 
-                       Foreground="Gray"/>
-        </StackPanel>
-        
-        <!-- Training-Status -->
-        <Border Grid.Row="1" BorderBrush="#D1D5DB" BorderThickness="1" 
-                CornerRadius="4" Padding="8" Margin="0,0,0,10">
-            <StackPanel>
-                <TextBlock>
-                    <Run Text="Session laeuft: "/>
-                    <Run Text="{Binding IsSessionRunning}" FontWeight="Bold"/>
-                </TextBlock>
-                <TextBlock>
-                    <Run Text="Aktueller Index: "/>
-                    <Run Text="{Binding CurrentIndex}" FontWeight="Bold"/>
-                </TextBlock>
-                <TextBlock>
-                    <Run Text="Fehler: "/>
-                    <Run Text="{Binding ErrorCount}" FontWeight="Bold"/>
-                </TextBlock>
-            </StackPanel>
-        </Border>
-        
-        <!-- Visuelle Tastatur -->
-        <Border Grid.Row="2" BorderBrush="#D1D5DB" BorderThickness="1" 
-                CornerRadius="4" Padding="10" Background="White">
-            <keyboard:VisualKeyboard x:Name="KeyboardControl" />
-        </Border>
+        Title="{Binding Title}" Height="600" Width="1000">
+    <Window.Resources>
+        <DataTemplate DataType="{x:Type vm:HomeViewModel}">
+            <views:HomeView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ModuleListViewModel}">
+            <views:ModuleListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LessonListViewModel}">
+            <views:LessonListView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LessonDetailsViewModel}">
+            <views:LessonDetailsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:LessonGuideViewModel}">
+            <views:LessonGuideView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TrainingViewModel}">
+            <views:TrainingView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:TrainingSummaryViewModel}">
+            <views:TrainingSummaryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SessionHistoryViewModel}">
+            <views:SessionHistoryView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SessionDetailViewModel}">
+            <views:SessionDetailView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:StatisticsDashboardViewModel}">
+            <views:StatisticsDashboardView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ErrorHeatmapViewModel}">
+            <views:ErrorHeatmapView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <views:SettingsView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ContentManagementViewModel}">
+            <views:ContentManagementView />
+        </DataTemplate>
+    </Window.Resources>
+    
+    <Grid>
+        <ContentControl Content="{Binding CurrentViewModel}" />
     </Grid>
 </Window>

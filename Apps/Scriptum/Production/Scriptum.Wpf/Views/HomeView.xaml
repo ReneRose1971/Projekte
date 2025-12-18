@@ -1,0 +1,28 @@
+<UserControl x:Class="Scriptum.Wpf.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Willkommen bei Scriptum Discipulus" 
+                   FontSize="24" FontWeight="Bold" Margin="0,0,0,20"/>
+
+        <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Button Content="Module durchsuchen" Width="200" Height="40" Margin="0,5" 
+                    Click="ModulesButton_Click"/>
+            <Button Content="Statistiken anzeigen" Width="200" Height="40" Margin="0,5" 
+                    Click="StatisticsButton_Click"/>
+            <Button Content="Letzte Sessions" Width="200" Height="40" Margin="0,5" 
+                    Click="SessionsButton_Click"/>
+            <Button Content="Einstellungen" Width="200" Height="40" Margin="0,5" 
+                    Click="SettingsButton_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
