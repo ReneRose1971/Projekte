@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Xunit;
+using System.Linq;
+using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Relationships;
 using DataToolKit.Storage.DataStores;
-using DataToolKit.Abstractions.DataStores;
-using DataToolKit.Tests.Testing;
+using TestHelper.DataToolKit.Testing;
+using Xunit;
 
 namespace DataToolKit.Tests.Relationships
 {

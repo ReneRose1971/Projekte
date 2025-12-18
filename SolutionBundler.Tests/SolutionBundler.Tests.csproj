@@ -25,7 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SolutionBundler.Core\SolutionBundler.Core.csproj" />
     <ProjectReference Include="..\SolutionBundler.WPF\SolutionBundler.WPF.csproj" />
-    <ProjectReference Include="..\DataToolKit.Tests\DataToolKit.Tests.csproj" />
+    <ProjectReference Include="..\TestHelper.DataToolKit\TestHelper.DataToolKit.csproj" />
     <ProjectReference Include="..\CustomWPFControls\CustomWPFControls.csproj" />
   </ItemGroup>
 

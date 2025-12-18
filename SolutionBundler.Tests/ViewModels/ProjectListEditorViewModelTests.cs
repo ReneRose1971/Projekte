@@ -1,4 +1,4 @@
-using DataToolKit.Tests.Fakes.Providers;
+using TestHelper.DataToolKit.Fakes.Providers;
 using SolutionBundler.Core.Abstractions;
 using SolutionBundler.Core.Implementations;
 using SolutionBundler.Core.Models;

@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
-using Xunit;
-using DataToolKit.Storage.Persistence;
+using System.ComponentModel;
+using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Storage.DataStores;
-using DataToolKit.Tests.Testing;
+using DataToolKit.Storage.Persistence;
+using TestHelper.DataToolKit.Testing;
+using Xunit;
 
-namespace DataToolKit.Tests.Storage.Persistence
+namespace DataToolKit.Tests.Storage.DataStores
 {
     /// <summary>
     /// Tests für PropertyChangedBinder im DataStore-Modus (AttachToDataStore).

@@ -4,8 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Storage.DataStores;
-using DataToolKit.Tests.Common;
-using DataToolKit.Tests.Testing;
+using TestHelper.DataToolKit.Fakes.Repositories;
+using TestHelper.DataToolKit.Testing;
 using Xunit;
 
 namespace DataToolKit.Tests.DataStores.Provider

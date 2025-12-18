@@ -3,8 +3,7 @@ using System.IO;
 using System.Linq;
 using DataToolKit.Abstractions.Repositories;
 using DataToolKit.Storage.Repositories;
-using DataToolKit.Tests.Testing;
-using DataToolKit.Tests.Common;
+using TestHelper.DataToolKit.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

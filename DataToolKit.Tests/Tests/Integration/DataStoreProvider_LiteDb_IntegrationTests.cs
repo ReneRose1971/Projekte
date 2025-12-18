@@ -5,8 +5,7 @@ using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Abstractions.Repositories;
 using DataToolKit.Storage.DataStores;
 using DataToolKit.Storage.Repositories;
-using DataToolKit.Tests.Common;
-using DataToolKit.Tests.Testing;
+using TestHelper.DataToolKit.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
@@ -201,7 +200,7 @@ namespace DataToolKit.Tests.Integration
             // Act - Änderung OHNE PropertyChanged-Tracking
             entity.Name = "Modified";
 
-            // Assert - Änderung wurde NICHT automatisch persistiert
+            // Assert - Änderung wurde NICHT automatischPersistiert
             var loaded = repository.Load().First();
             Assert.Equal("Original", loaded.Name); // Bleibt Original!
         }

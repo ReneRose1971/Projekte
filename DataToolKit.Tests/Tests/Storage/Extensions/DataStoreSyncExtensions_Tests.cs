@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xunit;
+using System.Threading.Tasks;
+using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Storage.DataStores;
 using DataToolKit.Storage.Extensions;
-using DataToolKit.Tests.Testing;
+using TestHelper.DataToolKit.Testing;
+using Xunit;
 
 namespace DataToolKit.Tests.Storage.Extensions
 {

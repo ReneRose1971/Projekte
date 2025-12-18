@@ -1,9 +1,13 @@
-using Xunit;
-using DataToolKit.Storage.Persistence;
-using DataToolKit.Tests.Testing;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using DataToolKit.Abstractions.DataStores;
+using DataToolKit.Storage.DataStores;
+using DataToolKit.Storage.Persistence;
+using TestHelper.DataToolKit.Testing;
+using Xunit;
 
-namespace DataToolKit.Tests.Storage.Persistence
+namespace DataToolKit.Tests.Storage.DataStores
 {
     public class PropertyChangedBinderTests
     {

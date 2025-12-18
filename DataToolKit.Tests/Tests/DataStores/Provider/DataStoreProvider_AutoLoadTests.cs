@@ -1,11 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
-using DataToolKit.Abstractions;
 using DataToolKit.Abstractions.DataStores;
 using DataToolKit.Abstractions.Repositories;
 using DataToolKit.Storage.DataStores;
-using DataToolKit.Tests.Common;
-using DataToolKit.Tests.Testing;
+using TestHelper.DataToolKit.Fakes.Repositories;
+using TestHelper.DataToolKit.Testing;
 using Xunit;
 
 namespace DataToolKit.Tests.DataStores.Provider
@@ -35,7 +36,7 @@ namespace DataToolKit.Tests.DataStores.Provider
                 new TestEntity { Id = 2, Name = "Entity2" }
             };
 
-            var fakeFactory = FakeRepositoryFactory.WithData(testData);
+            var fakeFactory = ConfigurableFakeRepositoryFactory.WithData(testData);
 
             // Act
             var store = provider.GetPersistent<TestEntity>(
@@ -61,7 +62,7 @@ namespace DataToolKit.Tests.DataStores.Provider
                 new TestEntity { Id = 2, Name = "Entity2" }
             };
 
-            var fakeFactory = FakeRepositoryFactory.WithData(testData);
+            var fakeFactory = ConfigurableFakeRepositoryFactory.WithData(testData);
 
             // Act
             var store = provider.GetPersistent<TestEntity>(
@@ -80,7 +81,7 @@ namespace DataToolKit.Tests.DataStores.Provider
             // Arrange
             using var provider = new DataStoreProvider(_factory);
             var testData = new[] { new TestEntity { Id = 1, Name = "Test" } };
-            var fakeFactory = FakeRepositoryFactory.WithData(testData);
+            var fakeFactory = ConfigurableFakeRepositoryFactory.WithData(testData);
 
             // Act
             var store = provider.GetPersistent<TestEntity>(
@@ -102,7 +103,7 @@ namespace DataToolKit.Tests.DataStores.Provider
             
             int loadCallCount = 0;
             var countingRepo = new CountingRepository<TestEntity>(testData, () => loadCallCount++);
-            var fakeFactory = FakeRepositoryFactory.WithRepository(countingRepo);
+            var fakeFactory = ConfigurableFakeRepositoryFactory.WithRepository(countingRepo);
 
             // Act - Zwei Aufrufe
             var store1 = provider.GetPersistent<TestEntity>(fakeFactory, autoLoad: true);
@@ -128,7 +129,7 @@ namespace DataToolKit.Tests.DataStores.Provider
                 new TestEntity { Id = 2, Name = "Entity2" }
             };
 
-            var fakeFactory = FakeRepositoryFactory.WithData(testData);
+            var fakeFactory = ConfigurableFakeRepositoryFactory.WithData(testData);
 
             // Act
             var store = await provider.GetPersistentAsync<TestEntity>(
@@ -147,7 +148,7 @@ namespace DataToolKit.Tests.DataStores.Provider
             // Arrange
             using var provider = new DataStoreProvider(_factory);
             var testData = new[] { new TestEntity { Id = 1, Name = "Test" } };
-            var fakeFactory = FakeRepositoryFactory.WithData(testData);
+            var fakeFactory = ConfigurableFakeRepositoryFactory.WithData(testData);
 
             // Act
             var store = await provider.GetPersistentAsync<TestEntity>(
@@ -169,7 +170,7 @@ namespace DataToolKit.Tests.DataStores.Provider
             
             int loadCallCount = 0;
             var countingRepo = new CountingRepository<TestEntity>(testData, () => loadCallCount++);
-            var fakeFactory = FakeRepositoryFactory.WithRepository(countingRepo);
+            var fakeFactory = ConfigurableFakeRepositoryFactory.WithRepository(countingRepo);
 
             // Act - Zwei Aufrufe
             var store1 = await provider.GetPersistentAsync<TestEntity>(fakeFactory, autoLoad: true);
@@ -189,7 +190,7 @@ namespace DataToolKit.Tests.DataStores.Provider
             
             int loadCallCount = 0;
             var countingRepo = new CountingRepository<TestEntity>(testData, () => loadCallCount++);
-            var fakeFactory = FakeRepositoryFactory.WithRepository(countingRepo);
+            var fakeFactory = ConfigurableFakeRepositoryFactory.WithRepository(countingRepo);
 
             // Act - Zwei Aufrufe mit isSingleton: false
             var store1 = await provider.GetPersistentAsync<TestEntity>(fakeFactory, isSingleton: false, autoLoad: true);

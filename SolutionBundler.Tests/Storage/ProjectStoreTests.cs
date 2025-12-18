@@ -1,4 +1,4 @@
-using DataToolKit.Tests.Fakes.Providers;
+using TestHelper.DataToolKit.Fakes.Providers;
 using SolutionBundler.Core.Models.Persistence;
 using SolutionBundler.Core.Storage;
 using System;

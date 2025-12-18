@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DataToolKit\DataToolKit.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
+    <ProjectReference Include="..\TestHelper.DataToolKit\TestHelper.DataToolKit.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,6 +36,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Fakes\Builders\" />
+    <Folder Include="Fakes\Providers\" />
+    <Folder Include="Fakes\Repositories\" />
     <Folder Include="Tests\Abstractions\DataStores\" />
+    <Folder Include="Tests\Common\" />
   </ItemGroup>
 </Project>

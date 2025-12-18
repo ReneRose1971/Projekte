@@ -2,8 +2,8 @@ using System;
 using System.Linq;
 using Common.Bootstrap.Defaults;
 using DataToolKit.Abstractions.Repositories;
-using DataToolKit.Tests.Fakes.Builders;
-using DataToolKit.Tests.Fakes.Repositories;
+using TestHelper.DataToolKit.Builders;
+using TestHelper.DataToolKit.Fakes.Repositories;
 using Xunit;
 
 namespace DataToolKit.Tests.Examples.Fakes

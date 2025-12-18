@@ -1,8 +1,8 @@
 using Xunit;
 using DataToolKit.Abstractions.Repositories;
 using DataToolKit.Storage.DataStores;
-using DataToolKit.Tests.Testing;
-using DataToolKit.Tests.Common;
+using TestHelper.DataToolKit.Testing;
+using TestHelper.DataToolKit.Fakes.Repositories;
 
 namespace DataToolKit.Tests.Storage.DataStores
 {
