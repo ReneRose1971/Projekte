@@ -1,0 +1,25 @@
+<UserControl x:Class="Scriptum.Wpf.Controls.BreadcrumbControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:nav="clr-namespace:Scriptum.Wpf.Navigation">
+    
+    <ItemsControl ItemsSource="{Binding}">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <StackPanel Orientation="Horizontal"/>
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="{x:Type nav:BreadcrumbItem}">
+                <TextBlock>
+                    <Run Text="{Binding Title, Mode=OneWay}" 
+                         FontWeight="Medium"
+                         Foreground="{StaticResource Text.Primary}"/>
+                    <Run Text=" &#xE26B; " 
+                         Foreground="{StaticResource Text.Secondary}"
+                         x:Name="Separator"/>
+                </TextBlock>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>

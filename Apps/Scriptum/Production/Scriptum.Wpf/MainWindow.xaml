@@ -5,9 +5,23 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:Scriptum.Wpf.ViewModels"
         xmlns:views="clr-namespace:Scriptum.Wpf.Views"
+        xmlns:nav="clr-namespace:Scriptum.Wpf.Navigation"
+        xmlns:conv="clr-namespace:Scriptum.Wpf.Converters"
+        xmlns:controls="clr-namespace:Scriptum.Wpf.Controls"
         mc:Ignorable="d"
-        Title="{Binding Title}" Height="600" Width="1000">
+        Title="{Binding Title}" 
+        Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource App.Background}">
+    
     <Window.Resources>
+        <!-- Converters -->
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
+        <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibilityConverter"/>
+        <conv:NullToVisibilityConverter x:Key="NullToVisibilityConverter"/>
+        <conv:BoolToTagConverter x:Key="BoolToTagConverter"/>
+
+        <!-- DataTemplate Mappings -->
         <DataTemplate DataType="{x:Type vm:HomeViewModel}">
             <views:HomeView />
         </DataTemplate>
@@ -48,8 +62,207 @@
             <views:ContentManagementView />
         </DataTemplate>
     </Window.Resources>
-    
+
+    <!-- Main Shell Layout -->
     <Grid>
-        <ContentControl Content="{Binding CurrentViewModel}" />
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- SIDEBAR -->
+        <Border Grid.Column="0" 
+                Background="{StaticResource Sidebar.Background}"
+                BorderBrush="{StaticResource Border.Light}"
+                BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- App Branding -->
+                <StackPanel Grid.Row="0" Margin="16,24,16,24">
+                    <TextBlock Text="{Binding Title}" 
+                               Style="{StaticResource BrandTitleStyle}"
+                               TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding Subtitle}" 
+                               Style="{StaticResource CaptionTextStyle}"
+                               Margin="0,4,0,0"/>
+                </StackPanel>
+
+                <!-- Navigation Lists -->
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <StackPanel>
+                        <!-- Primary Navigation -->
+                        <ItemsControl ItemsSource="{Binding PrimaryNavigation}" Margin="8,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type nav:NavigationItem}">
+                                    <Button Click="NavigationButton_Click"
+                                            Tag="{Binding}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource SidebarButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="Tag" Value="Selected"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding IconGlyph}" 
+                                                       FontFamily="Segoe MDL2 Assets" 
+                                                       FontSize="16"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,12,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IconGlyph, Converter={StaticResource NullToVisibilityConverter}}" Value="Visible">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Separator Style="{StaticResource SeparatorStyle}" Margin="16,16"/>
+
+                        <!-- Secondary Navigation -->
+                        <ItemsControl ItemsSource="{Binding SecondaryNavigation}" Margin="8,0">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type nav:NavigationItem}">
+                                    <Button Click="NavigationButton_Click"
+                                            Tag="{Binding}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource SidebarButtonStyle}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                        <Setter Property="Tag" Value="Selected"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="{Binding IconGlyph}" 
+                                                       FontFamily="Segoe MDL2 Assets" 
+                                                       FontSize="16"
+                                                       VerticalAlignment="Center"
+                                                       Margin="0,0,12,0">
+                                                <TextBlock.Style>
+                                                    <Style TargetType="TextBlock">
+                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IconGlyph, Converter={StaticResource NullToVisibilityConverter}}" Value="Visible">
+                                                                <Setter Property="Visibility" Value="Visible"/>
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </TextBlock.Style>
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </ScrollViewer>
+
+                <!-- Footer -->
+                <StackPanel Grid.Row="2" Margin="16">
+                    <Separator Style="{StaticResource SeparatorStyle}"/>
+                    <TextBlock Text="{Binding AppVersion}" 
+                               Style="{StaticResource CaptionTextStyle}"
+                               HorizontalAlignment="Center"
+                               Margin="0,8,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- MAIN CONTENT AREA -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+
+            <!-- TOPBAR -->
+            <Border Grid.Row="0" 
+                    Background="{StaticResource Topbar.Background}"
+                    BorderBrush="{StaticResource Border.Light}"
+                    BorderThickness="0,0,0,1"
+                    Padding="16,12">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Back Button + Breadcrumbs -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Button Content="&#xE72B;" 
+                                FontFamily="Segoe MDL2 Assets"
+                                FontSize="16"
+                                Style="{StaticResource IconButtonStyle}"
+                                Click="BackButton_Click"
+                                IsEnabled="{Binding CanGoBack}"
+                                ToolTip="Back"
+                                Margin="0,0,8,0"/>
+                        
+                        <controls:BreadcrumbControl DataContext="{Binding Breadcrumbs}"/>
+                    </StackPanel>
+
+                    <!-- Session Status Badge -->
+                    <Border Grid.Column="1" 
+                            Style="{StaticResource BadgeStyle}">
+                        <TextBlock Text="{Binding SessionStatus}" 
+                                   Style="{StaticResource BadgeTextStyle}"/>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <!-- CONTENT HOST -->
+            <Border Grid.Row="1" 
+                    Background="{StaticResource Content.Background}"
+                    Padding="16">
+                <ContentControl Content="{Binding CurrentViewModel}"/>
+            </Border>
+
+            <!-- STATUSBAR -->
+            <Border Grid.Row="2" 
+                    Background="{StaticResource Statusbar.Background}"
+                    BorderBrush="{StaticResource Border.Light}"
+                    BorderThickness="0,1,0,0"
+                    Padding="16,8">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <!-- Status Message -->
+                    <TextBlock Grid.Column="0" 
+                               Text="{Binding StatusMessage}" 
+                               Style="{StaticResource CaptionTextStyle}"
+                               VerticalAlignment="Center"/>
+
+                    <!-- Right Side Info -->
+                    <TextBlock Grid.Column="1"
+                               Text="{Binding CurrentTime}" 
+                               Style="{StaticResource CaptionTextStyle}"
+                               VerticalAlignment="Center"/>
+                </Grid>
+            </Border>
+        </Grid>
     </Grid>
 </Window>
