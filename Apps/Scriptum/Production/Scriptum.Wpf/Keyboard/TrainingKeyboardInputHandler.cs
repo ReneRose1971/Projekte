@@ -58,12 +58,7 @@ public sealed class TrainingKeyboardInputHandler : IKeyboardInputHandler
         {
             try
             {
-                var evaluation = _coordinator.ProcessInput(chord);
-                if (evaluation != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Evaluation: {evaluation.Outcome}");
-                }
-
+                _coordinator.ProcessInput(chord);
                 _onInputProcessed();
                 return true;
             }

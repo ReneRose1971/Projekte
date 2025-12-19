@@ -96,14 +96,19 @@ public sealed class DeQwertzInputInterpreter : IInputInterpreter
             KeyId.OemMinus => hasShift ? "_" : "-",
             KeyId.OemComma => hasShift ? ";" : ",",
             KeyId.OemPeriod => hasShift ? ":" : ".",
-            KeyId.Oem1 => hasShift ? "Ü" : "ü",
-            KeyId.Oem3 => hasShift ? "Ö" : "ö",
-            KeyId.Oem7 => hasShift ? "Ä" : "ä",
-            KeyId.Oem102 => hasShift ? ">" : "<",
-            KeyId.Oem2 => hasShift ? "'" : "#",
-            KeyId.Oem5 => hasShift ? "°" : "^",
-            KeyId.Oem4 => hasShift ? "?" : "ß",
-            KeyId.Oem6 => hasShift ? "`" : "´",
+            
+            // Deutsche Umlaute (basierend auf KeyId-Enum-Kommentaren)
+            KeyId.Oem1 => hasShift ? "Ü" : "ü",  // Ü
+            KeyId.Oem3 => hasShift ? "Ö" : "ö",  // Ö
+            KeyId.Oem4 => hasShift ? "Ä" : "ä",  // Ä (war vorher falsch: ß/?)
+            KeyId.Oem6 => hasShift ? "?" : "ß",  // ß (war vorher falsch: ´/`)
+            
+            // Sonstige OEM-Tasten
+            KeyId.Oem102 => hasShift ? ">" : "<",  // < > |
+            KeyId.Oem2 => hasShift ? "'" : "#",   // #
+            KeyId.Oem5 => hasShift ? "°" : "^",   // ^
+            KeyId.Oem7 => hasShift ? "`" : "´",   // ´ Akut (rechts neben Ü)
+            
             _ => null
         };
     }

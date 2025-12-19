@@ -7,6 +7,7 @@ using DataToolKit.Abstractions.DataStores;
 using PropertyChanged;
 using Scriptum.Application;
 using Scriptum.Content.Data;
+using Scriptum.Core;
 using Scriptum.Wpf.Commands;
 using Scriptum.Wpf.Keyboard;
 using Scriptum.Wpf.Keyboard.ViewModels;
@@ -69,16 +70,8 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
 
     public ICommand NavigateBackCommand { get; }
     public ICommand ToggleGuideCommand { get; }
-
-    /// <summary>
-    /// Trigger-Property für State-Updates. Wird inkrementiert, wenn sich der Coordinator-State ändert.
-    /// Fody erkennt automatisch, dass alle Properties, die auf StateVersion zugreifen, aktualisiert werden müssen.
-    /// </summary>
-    [DoNotNotify]
-    private int StateVersion { get; set; }
     
-    [DependsOn(nameof(StateVersion), nameof(LessonId))
-    ]
+    [DependsOn(nameof(LessonId))]
     public string GuideText
     {
         get
@@ -94,13 +87,10 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
         }
     }
     
-    [DependsOn(nameof(StateVersion))]
     public string DisplayTarget
     {
         get
         {
-            _ = StateVersion; // Force dependency tracking
-            
             if (_coordinator.CurrentState?.Sequence == null)
                 return "Keine Lektion geladen";
 
@@ -112,13 +102,10 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
         }
     }
 
-    [DependsOn(nameof(StateVersion))]
     public string DisplayInput
     {
         get
         {
-            _ = StateVersion; // Force dependency tracking
-            
             if (_coordinator.CurrentSession?.Inputs == null || _coordinator.CurrentSession.Inputs.Count == 0)
                 return string.Empty;
 
@@ -132,37 +119,22 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
         }
     }
     
-    [DependsOn(nameof(StateVersion))]
-    public int CurrentIndex
-    {
-        get
-        {
-            _ = StateVersion; // Force dependency tracking
-            return _coordinator.CurrentState?.CurrentTargetIndex ?? 0;
-        }
-    }
+    public int CurrentIndex => _coordinator.CurrentState?.CurrentTargetIndex ?? 0;
+    public bool IsCompleted => _coordinator.CurrentSession?.IsCompleted ?? false;
     
-    [DependsOn(nameof(StateVersion))]
-    public bool IsCompleted
-    {
-        get
-        {
-            _ = StateVersion; // Force dependency tracking
-            return _coordinator.CurrentSession?.IsCompleted ?? false;
-        }
-    }
-    
-    [DependsOn(nameof(StateVersion))]
     public int ErrorCount
     {
         get
         {
-            _ = StateVersion; // Force dependency tracking
-            return _coordinator.CurrentSession?.Evaluations?.Count ?? 0;
+            if (_coordinator.CurrentSession?.Evaluations == null)
+                return 0;
+            
+            return _coordinator.CurrentSession.Evaluations
+                .Count(e => e.Ergebnis == EvaluationOutcome.Falsch);
         }
     }
     
-    [DependsOn(nameof(StateVersion), nameof(IsCompleted), nameof(CurrentIndex), nameof(ErrorCount))]
+    [DependsOn(nameof(IsCompleted), nameof(CurrentIndex), nameof(ErrorCount))]
     public string StatusText => IsCompleted ? "Lektion abgeschlossen!" : $"Position: {CurrentIndex}, Fehler: {ErrorCount}";
 
     public void Initialize(string moduleId, string lessonId)
@@ -222,10 +194,16 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
 
     /// <summary>
     /// Wird aufgerufen, wenn sich der Coordinator-State ändert.
-    /// Triggert automatisch PropertyChanged für alle abhängigen Properties.
+    /// Triggert PropertyChanged für alle abhängigen Properties.
     /// </summary>
     private void OnStateChanged()
     {
-        StateVersion++;
+        // Manuelle PropertyChanged-Aufrufe, da Fody [DependsOn] nicht für externe Dependencies funktioniert
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayInput)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayTarget)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentIndex)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ErrorCount)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCompleted)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StatusText)));
     }
 }

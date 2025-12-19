@@ -70,13 +70,21 @@ public sealed class WpfKeyChordAdapter : IKeyChordAdapter
             Key.OemMinus => KeyId.OemMinus,
             Key.OemPlus => KeyId.OemPlus,
             Key.Oem102 => KeyId.Oem102,
-            Key.OemOpenBrackets => KeyId.Oem6,
-            Key.Oem1 => KeyId.Oem3,
-            Key.Oem3 => KeyId.Oem4,
-            Key.Oem5 => KeyId.Oem5,
-            Key.Oem7 => KeyId.Oem7,
-            Key.Oem2 => KeyId.Oem2,
-            Key.OemCloseBrackets => KeyId.Oem1,
+            
+            // DE-QWERTZ Umlaute (KORRIGIERT basierend auf Benutzer-Feedback)
+            // Benutzer drückt ö ? WPF Key.Oem3 ? sollte ö ergeben
+            // Benutzer drückt ä ? WPF Key.OemQuotes ? sollte ä ergeben
+            // Benutzer drückt ü ? WPF Key.Oem1 ? sollte ü ergeben
+            // Benutzer drückt ß ? WPF Key.OemOpenBrackets ? sollte ß ergeben
+            Key.Oem3 => KeyId.Oem3,             // Ö (Benutzer drückt ö ? Key.Oem3 ? KeyId.Oem3 ? ö)
+            Key.OemQuotes => KeyId.Oem4,        // Ä (Benutzer drückt ä ? Key.OemQuotes ? KeyId.Oem4 ? ä)
+            Key.Oem1 => KeyId.Oem1,             // Ü (Benutzer drückt ü ? Key.Oem1 ? KeyId.Oem1 ? ü)
+            Key.OemOpenBrackets => KeyId.Oem6,  // ß (Benutzer drückt ß ? Key.OemOpenBrackets ? KeyId.Oem6 ? ß)
+            
+            // Sonstige OEM-Tasten
+            Key.Oem5 => KeyId.Oem5,             // ^
+            Key.Oem2 => KeyId.Oem2,             // #
+            Key.OemCloseBrackets => KeyId.Oem7, // ´
 
             Key.Space => KeyId.Space,
             Key.Enter or Key.Return => KeyId.Enter,
