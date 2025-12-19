@@ -3,6 +3,7 @@ using Scriptum.Application.Tests.Fakes;
 using Scriptum.Content.Data;
 using Scriptum.Core;
 using Scriptum.Engine;
+using Scriptum.Progress;
 using TestHelper.DataToolKit.Fakes.Providers;
 using TestHelper.DataToolKit.Fakes.Repositories;
 
@@ -28,12 +29,13 @@ public sealed class TrainingSessionCoordinatorCompletionTests
         _engine = new TrainingEngine();
         _interpreter = new DeQwertzInputInterpreter();
 
+        PrepareDataStores();
+
         _coordinator = new TrainingSessionCoordinator(
             _engine,
             _interpreter,
             _clock,
-            _dataStoreProvider,
-            _repositoryFactory);
+            _dataStoreProvider);
 
         PrepareTestData();
     }
@@ -129,19 +131,31 @@ public sealed class TrainingSessionCoordinatorCompletionTests
         _coordinator.ProcessInput(new KeyChord(KeyId.C, ModifierSet.None));
     }
 
-    private void PrepareTestData()
+    private void PrepareDataStores()
     {
-        var moduleStore = _dataStoreProvider.GetPersistent<ModuleData>(
+        _dataStoreProvider.GetPersistent<TrainingSession>(
+            _repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: true,
+            autoLoad: false);
+
+        _dataStoreProvider.GetPersistent<ModuleData>(
             _repositoryFactory,
             isSingleton: true,
             trackPropertyChanges: false,
             autoLoad: false);
 
-        var lessonStore = _dataStoreProvider.GetPersistent<LessonData>(
+        _dataStoreProvider.GetPersistent<LessonData>(
             _repositoryFactory,
             isSingleton: true,
             trackPropertyChanges: false,
             autoLoad: false);
+    }
+
+    private void PrepareTestData()
+    {
+        var moduleStore = _dataStoreProvider.GetDataStore<ModuleData>();
+        var lessonStore = _dataStoreProvider.GetDataStore<LessonData>();
 
         var module = new ModuleData("Modul1", "Test-Modul");
         var lesson = new LessonData("Lektion1", "Modul1", "Test-Lektion", uebungstext: "abc");

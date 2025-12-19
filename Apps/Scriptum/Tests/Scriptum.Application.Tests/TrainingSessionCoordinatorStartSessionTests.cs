@@ -28,12 +28,13 @@ public sealed class TrainingSessionCoordinatorStartSessionTests
         _engine = new TrainingEngine();
         _interpreter = new DeQwertzInputInterpreter();
 
+        PrepareDataStores();
+
         _coordinator = new TrainingSessionCoordinator(
             _engine,
             _interpreter,
             _clock,
-            _dataStoreProvider,
-            _repositoryFactory);
+            _dataStoreProvider);
     }
 
     [Fact]
@@ -154,17 +155,6 @@ public sealed class TrainingSessionCoordinatorStartSessionTests
     }
 
     [Fact]
-    public void StartSession_WithNonExistentModule_ShouldThrowInvalidOperationException()
-    {
-        PrepareTestData();
-
-        var act = () => _coordinator.StartSession("NichtExistent", "Lektion1");
-
-        act.Should().Throw<InvalidOperationException>()
-            .WithMessage("*nicht gefunden*");
-    }
-
-    [Fact]
     public void StartSession_WhenSessionAlreadyRunning_ShouldThrowInvalidOperationException()
     {
         PrepareTestData();
@@ -176,24 +166,28 @@ public sealed class TrainingSessionCoordinatorStartSessionTests
             .WithMessage("*bereits eine Sitzung*");
     }
 
+    private void PrepareDataStores()
+    {
+        _dataStoreProvider.GetPersistent<Progress.TrainingSession>(
+            _repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: true,
+            autoLoad: false);
+
+        _dataStoreProvider.GetPersistent<LessonData>(
+            _repositoryFactory,
+            isSingleton: true,
+            trackPropertyChanges: false,
+            autoLoad: false);
+    }
+
     private void PrepareTestData()
     {
-        var moduleStore = _dataStoreProvider.GetPersistent<ModuleData>(
-            _repositoryFactory,
-            isSingleton: true,
-            trackPropertyChanges: false,
-            autoLoad: false);
+        var lessonStore = _dataStoreProvider.GetDataStore<LessonData>();
 
-        var lessonStore = _dataStoreProvider.GetPersistent<LessonData>(
-            _repositoryFactory,
-            isSingleton: true,
-            trackPropertyChanges: false,
-            autoLoad: false);
-
-        var module = new ModuleData("Modul1", "Test-Modul");
         var lesson = new LessonData("Lektion1", "Modul1", "Test-Lektion", uebungstext: "abc");
 
-        moduleStore.Add(module);
         lessonStore.Add(lesson);
     }
 }
+		

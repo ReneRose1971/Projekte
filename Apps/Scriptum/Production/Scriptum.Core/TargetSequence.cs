@@ -60,6 +60,21 @@ public sealed class TargetSequence
         _symbols = symbols;
     }
     
+    /// <summary>
+    /// Erstellt eine Zielsequenz aus einem Text, wobei jedes Zeichen als Graphem interpretiert wird.
+    /// </summary>
+    /// <param name="text">Der Übungstext.</param>
+    /// <returns>Eine neue TargetSequence.</returns>
+    /// <exception cref="ArgumentException">Wenn der Text null, leer oder nur Whitespace ist.</exception>
+    public static TargetSequence FromText(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            throw new ArgumentException("Text darf nicht leer sein.", nameof(text));
+        
+        var graphemes = text.Select(c => c.ToString());
+        return new TargetSequence(graphemes);
+    }
+    
     private static void ValidateIndices(IReadOnlyList<TargetSymbol> symbols)
     {
         for (int i = 0; i < symbols.Count; i++)
