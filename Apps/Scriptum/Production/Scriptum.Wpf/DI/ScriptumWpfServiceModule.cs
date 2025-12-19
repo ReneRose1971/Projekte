@@ -1,5 +1,6 @@
 using Common.Bootstrap;
 using Microsoft.Extensions.DependencyInjection;
+using Scriptum.Wpf.Keyboard;
 using Scriptum.Wpf.Keyboard.ViewModels;
 using Scriptum.Wpf.Navigation;
 using Scriptum.Wpf.Projections.Services;
@@ -26,6 +27,7 @@ public sealed class ScriptumWpfServiceModule : IServiceModule
   public void Register(IServiceCollection services)
   {
     services.AddSingleton<IKeyChordAdapter, WpfKeyChordAdapter>();
+    services.AddSingleton<IKeyCodeMapper, DeQwertzKeyCodeMapper>();
     services.AddSingleton<VisualKeyboardViewModel>();
 
     services.AddSingleton<IContentQueryService, ContentQueryService>();
@@ -40,7 +42,10 @@ public sealed class ScriptumWpfServiceModule : IServiceModule
     services.AddTransient<LessonListViewModel>();
     services.AddTransient<LessonDetailsViewModel>();
     services.AddTransient<LessonGuideViewModel>();
+    
+    // IKeyboardInputHandler wird per TrainingViewModel erstellt (benötigt RefreshUI-Callback)
     services.AddTransient<TrainingViewModel>();
+    
     services.AddTransient<TrainingSummaryViewModel>();
     services.AddTransient<SessionHistoryViewModel>();
     services.AddTransient<SessionDetailViewModel>();

@@ -7,7 +7,8 @@ using DataToolKit.Abstractions.DataStores;
 using PropertyChanged;
 using Scriptum.Application;
 using Scriptum.Content.Data;
-using Scriptum.Core;
+using Scriptum.Wpf.Commands;
+using Scriptum.Wpf.Keyboard;
 using Scriptum.Wpf.Keyboard.ViewModels;
 using Scriptum.Wpf.Navigation;
 
@@ -21,7 +22,7 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
 {
     private readonly INavigationService _navigationService;
     private readonly ITrainingSessionCoordinator _coordinator;
-    private readonly IKeyChordAdapter _adapter;
+    private readonly IKeyboardInputHandler _keyboardInputHandler;
     private readonly VisualKeyboardViewModel _keyboardViewModel;
     private readonly IDataStore<LessonGuideData> _guideDataStore;
 
@@ -31,25 +32,53 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
         INavigationService navigationService,
         ITrainingSessionCoordinator coordinator,
         IKeyChordAdapter adapter,
+        IKeyCodeMapper keyCodeMapper,
         VisualKeyboardViewModel keyboardViewModel,
         IDataStoreProvider dataStoreProvider)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
-        _adapter = adapter ?? throw new ArgumentNullException(nameof(adapter));
         _keyboardViewModel = keyboardViewModel ?? throw new ArgumentNullException(nameof(keyboardViewModel));
+
+        if (adapter == null)
+            throw new ArgumentNullException(nameof(adapter));
+        
+        if (keyCodeMapper == null)
+            throw new ArgumentNullException(nameof(keyCodeMapper));
 
         if (dataStoreProvider == null)
             throw new ArgumentNullException(nameof(dataStoreProvider));
 
         _guideDataStore = dataStoreProvider.GetDataStore<LessonGuideData>();
+
+        _keyboardInputHandler = new TrainingKeyboardInputHandler(
+            coordinator,
+            adapter,
+            keyCodeMapper,
+            keyboardViewModel,
+            OnStateChanged);
+
+        NavigateBackCommand = new RelayCommand(_ => ExecuteNavigateBack());
+        ToggleGuideCommand = new RelayCommand(_ => ExecuteToggleGuide());
     }
 
     public VisualKeyboardViewModel Keyboard => _keyboardViewModel;
     public string ModuleId { get; private set; } = string.Empty;
     public string LessonId { get; private set; } = string.Empty;
     public bool IsGuideVisible { get; set; } = false;
+
+    public ICommand NavigateBackCommand { get; }
+    public ICommand ToggleGuideCommand { get; }
+
+    /// <summary>
+    /// Trigger-Property für State-Updates. Wird inkrementiert, wenn sich der Coordinator-State ändert.
+    /// Fody erkennt automatisch, dass alle Properties, die auf StateVersion zugreifen, aktualisiert werden müssen.
+    /// </summary>
+    [DoNotNotify]
+    private int StateVersion { get; set; }
     
+    [DependsOn(nameof(StateVersion), nameof(LessonId))
+    ]
     public string GuideText
     {
         get
@@ -65,10 +94,13 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
         }
     }
     
+    [DependsOn(nameof(StateVersion))]
     public string DisplayTarget
     {
         get
         {
+            _ = StateVersion; // Force dependency tracking
+            
             if (_coordinator.CurrentState?.Sequence == null)
                 return "Keine Lektion geladen";
 
@@ -80,13 +112,13 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
         }
     }
 
-    /// <summary>
-    /// Die bisherige Benutzereingabe basierend auf den Input-Events der aktuellen Session.
-    /// </summary>
+    [DependsOn(nameof(StateVersion))]
     public string DisplayInput
     {
         get
         {
+            _ = StateVersion; // Force dependency tracking
+            
             if (_coordinator.CurrentSession?.Inputs == null || _coordinator.CurrentSession.Inputs.Count == 0)
                 return string.Empty;
 
@@ -100,9 +132,37 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
         }
     }
     
-    public int CurrentIndex => _coordinator.CurrentState?.CurrentTargetIndex ?? 0;
-    public bool IsCompleted => _coordinator.CurrentSession?.IsCompleted ?? false;
-    public int ErrorCount => _coordinator.CurrentSession?.Evaluations?.Count ?? 0;
+    [DependsOn(nameof(StateVersion))]
+    public int CurrentIndex
+    {
+        get
+        {
+            _ = StateVersion; // Force dependency tracking
+            return _coordinator.CurrentState?.CurrentTargetIndex ?? 0;
+        }
+    }
+    
+    [DependsOn(nameof(StateVersion))]
+    public bool IsCompleted
+    {
+        get
+        {
+            _ = StateVersion; // Force dependency tracking
+            return _coordinator.CurrentSession?.IsCompleted ?? false;
+        }
+    }
+    
+    [DependsOn(nameof(StateVersion))]
+    public int ErrorCount
+    {
+        get
+        {
+            _ = StateVersion; // Force dependency tracking
+            return _coordinator.CurrentSession?.Evaluations?.Count ?? 0;
+        }
+    }
+    
+    [DependsOn(nameof(StateVersion), nameof(IsCompleted), nameof(CurrentIndex), nameof(ErrorCount))]
     public string StatusText => IsCompleted ? "Lektion abgeschlossen!" : $"Position: {CurrentIndex}, Fehler: {ErrorCount}";
 
     public void Initialize(string moduleId, string lessonId)
@@ -115,7 +175,7 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
             _coordinator.StartSession(moduleId, lessonId);
             System.Diagnostics.Debug.WriteLine($"Training Session gestartet: {moduleId}/{lessonId}");
             
-            RefreshUI();
+            OnStateChanged();
         }
         catch (Exception ex)
         {
@@ -123,117 +183,49 @@ public sealed class TrainingViewModel : INotifyPropertyChanged
         }
     }
 
-    public void ToggleGuide()
-    {
-        IsGuideVisible = !IsGuideVisible;
-    }
-
     public void OnKeyDown(KeyEventArgs e)
     {
-        var label = MapKeyToLabel(e.Key);
-        if (!string.IsNullOrEmpty(label))
+        var wasProcessed = _keyboardInputHandler.HandleKeyDown(e);
+        
+        if (wasProcessed && IsCompleted)
         {
-            _keyboardViewModel.SetPressed(label, true);
-
-            if (e.Key == Key.LeftShift || e.Key == Key.RightShift)
-                _keyboardViewModel.IsShiftActive = true;
-
-            if (e.Key == Key.RightAlt)
-                _keyboardViewModel.IsAltGrActive = true;
-        }
-
-        if (!_coordinator.IsSessionRunning || IsCompleted)
-            return;
-
-        if (_adapter.TryCreateChord(e, out var chord))
-        {
-            try
-            {
-                var evaluation = _coordinator.ProcessInput(chord);
-                if (evaluation != null)
-                {
-                    System.Diagnostics.Debug.WriteLine($"Evaluation: {evaluation.Outcome}");
-                }
-
-                RefreshUI();
-
-                if (IsCompleted)
-                {
-                    _navigationService.NavigateToTrainingSummary();
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"Fehler bei ProcessInput: {ex.Message}");
-            }
+            _navigationService.NavigateToTrainingSummary();
         }
     }
 
     public void OnKeyUp(KeyEventArgs e)
     {
-        var label = MapKeyToLabel(e.Key);
-        if (!string.IsNullOrEmpty(label))
-        {
-            _keyboardViewModel.SetPressed(label, false);
-
-            if (e.Key == Key.LeftShift || e.Key == Key.RightShift)
-                _keyboardViewModel.IsShiftActive = false;
-
-            if (e.Key == Key.RightAlt)
-                _keyboardViewModel.IsAltGrActive = false;
-        }
+        _keyboardInputHandler.HandleKeyUp(e);
     }
 
+    [Obsolete("Use NavigateBackCommand instead")]
     public void NavigateBack()
+    {
+        ExecuteNavigateBack();
+    }
+
+    [Obsolete("Use ToggleGuideCommand instead")]
+    public void ToggleGuide()
+    {
+        ExecuteToggleGuide();
+    }
+
+    private void ExecuteNavigateBack()
     {
         _navigationService.NavigateToLessonDetails(ModuleId, LessonId);
     }
 
-    /// <summary>
-    /// Aktualisiert alle UI-abhängigen Properties, die von _coordinator abhängen.
-    /// </summary>
-    private void RefreshUI()
+    private void ExecuteToggleGuide()
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayInput)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayTarget)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentIndex)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ErrorCount)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCompleted)));
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StatusText)));
+        IsGuideVisible = !IsGuideVisible;
     }
 
-    private static string? MapKeyToLabel(Key key)
+    /// <summary>
+    /// Wird aufgerufen, wenn sich der Coordinator-State ändert.
+    /// Triggert automatisch PropertyChanged für alle abhängigen Properties.
+    /// </summary>
+    private void OnStateChanged()
     {
-        if (key >= Key.A && key <= Key.Z)
-            return ((char)('A' + (key - Key.A))).ToString();
-
-        if (key >= Key.D0 && key <= Key.D9)
-            return ((char)('0' + (key - Key.D0))).ToString();
-
-        return key switch
-        {
-            Key.Space => "Space",
-            Key.Enter or Key.Return => "Enter",
-            Key.Back => "Backspace",
-            Key.Tab => "Tab",
-            Key.Escape => "Esc",
-            Key.OemComma => ",",
-            Key.OemPeriod => ".",
-            Key.OemMinus => "-",
-            Key.OemPlus => "+",
-            Key.Oem102 => "< > |",
-            Key.OemOpenBrackets => "ü",
-            Key.OemCloseBrackets => "+",
-            Key.Oem1 => "ö",
-            Key.Oem3 => "ä",
-            Key.Oem5 => "^",
-            Key.Oem7 => "ß",
-            Key.Oem2 => "#",
-            Key.LeftShift or Key.RightShift => "Shift",
-            Key.LeftCtrl or Key.RightCtrl => "Ctrl",
-            Key.LeftAlt => "Alt",
-            Key.RightAlt => "AltGr",
-            _ => null
-        };
+        StateVersion++;
     }
 }
