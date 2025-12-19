@@ -1,7 +1,12 @@
 using System;
+using System.ComponentModel;
+using System.Linq;
+using System.Text;
 using System.Windows.Input;
+using DataToolKit.Abstractions.DataStores;
 using PropertyChanged;
 using Scriptum.Application;
+using Scriptum.Content.Data;
 using Scriptum.Core;
 using Scriptum.Wpf.Keyboard.ViewModels;
 using Scriptum.Wpf.Navigation;
@@ -12,29 +17,89 @@ namespace Scriptum.Wpf.ViewModels;
 /// ViewModel für die Trainingsansicht.
 /// </summary>
 [AddINotifyPropertyChangedInterface]
-public sealed class TrainingViewModel
+public sealed class TrainingViewModel : INotifyPropertyChanged
 {
     private readonly INavigationService _navigationService;
     private readonly ITrainingSessionCoordinator _coordinator;
     private readonly IKeyChordAdapter _adapter;
     private readonly VisualKeyboardViewModel _keyboardViewModel;
+    private readonly IDataStore<LessonGuideData> _guideDataStore;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     public TrainingViewModel(
         INavigationService navigationService,
         ITrainingSessionCoordinator coordinator,
         IKeyChordAdapter adapter,
-        VisualKeyboardViewModel keyboardViewModel)
+        VisualKeyboardViewModel keyboardViewModel,
+        IDataStoreProvider dataStoreProvider)
     {
         _navigationService = navigationService ?? throw new ArgumentNullException(nameof(navigationService));
         _coordinator = coordinator ?? throw new ArgumentNullException(nameof(coordinator));
         _adapter = adapter ?? throw new ArgumentNullException(nameof(adapter));
         _keyboardViewModel = keyboardViewModel ?? throw new ArgumentNullException(nameof(keyboardViewModel));
+
+        if (dataStoreProvider == null)
+            throw new ArgumentNullException(nameof(dataStoreProvider));
+
+        _guideDataStore = dataStoreProvider.GetDataStore<LessonGuideData>();
     }
 
     public VisualKeyboardViewModel Keyboard => _keyboardViewModel;
     public string ModuleId { get; private set; } = string.Empty;
     public string LessonId { get; private set; } = string.Empty;
-    public string DisplayTarget => "TODO: TargetSequence anzeigen";
+    public bool IsGuideVisible { get; set; } = false;
+    
+    public string GuideText
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(LessonId))
+                return "Keine Hilfe verfügbar";
+
+            var guide = _guideDataStore.Items.FirstOrDefault(g => g.LessonId == LessonId);
+            if (guide == null || string.IsNullOrWhiteSpace(guide.GuideTextMarkdown))
+                return "Keine Hilfe für diese Lektion vorhanden.";
+
+            return guide.GuideTextMarkdown;
+        }
+    }
+    
+    public string DisplayTarget
+    {
+        get
+        {
+            if (_coordinator.CurrentState?.Sequence == null)
+                return "Keine Lektion geladen";
+
+            var symbols = _coordinator.CurrentState.Sequence.Symbols;
+            if (symbols == null || symbols.Count == 0)
+                return "Leere Lektion";
+
+            return string.Join("", symbols.Select(s => s.Graphem));
+        }
+    }
+
+    /// <summary>
+    /// Die bisherige Benutzereingabe basierend auf den Input-Events der aktuellen Session.
+    /// </summary>
+    public string DisplayInput
+    {
+        get
+        {
+            if (_coordinator.CurrentSession?.Inputs == null || _coordinator.CurrentSession.Inputs.Count == 0)
+                return string.Empty;
+
+            var sb = new StringBuilder();
+            foreach (var input in _coordinator.CurrentSession.Inputs)
+            {
+                if (!string.IsNullOrEmpty(input.ErzeugtesGraphem))
+                    sb.Append(input.ErzeugtesGraphem);
+            }
+            return sb.ToString();
+        }
+    }
+    
     public int CurrentIndex => _coordinator.CurrentState?.CurrentTargetIndex ?? 0;
     public bool IsCompleted => _coordinator.CurrentSession?.IsCompleted ?? false;
     public int ErrorCount => _coordinator.CurrentSession?.Evaluations?.Count ?? 0;
@@ -49,11 +114,18 @@ public sealed class TrainingViewModel
         {
             _coordinator.StartSession(moduleId, lessonId);
             System.Diagnostics.Debug.WriteLine($"Training Session gestartet: {moduleId}/{lessonId}");
+            
+            RefreshUI();
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Fehler beim Starten der Session: {ex.Message}");
         }
+    }
+
+    public void ToggleGuide()
+    {
+        IsGuideVisible = !IsGuideVisible;
     }
 
     public void OnKeyDown(KeyEventArgs e)
@@ -82,6 +154,8 @@ public sealed class TrainingViewModel
                 {
                     System.Diagnostics.Debug.WriteLine($"Evaluation: {evaluation.Outcome}");
                 }
+
+                RefreshUI();
 
                 if (IsCompleted)
                 {
@@ -113,6 +187,19 @@ public sealed class TrainingViewModel
     public void NavigateBack()
     {
         _navigationService.NavigateToLessonDetails(ModuleId, LessonId);
+    }
+
+    /// <summary>
+    /// Aktualisiert alle UI-abhängigen Properties, die von _coordinator abhängen.
+    /// </summary>
+    private void RefreshUI()
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayInput)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(DisplayTarget)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CurrentIndex)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(ErrorCount)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsCompleted)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(StatusText)));
     }
 
     private static string? MapKeyToLabel(Key key)

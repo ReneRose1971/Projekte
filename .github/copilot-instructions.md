@@ -8,7 +8,7 @@
 - **Code-Stil**: Folge den bestehenden Konventionen im Projekt
 
 ### Test-Erstellung
-?? **Tests nur auf explizite Nachfrage erstellen**
+? **Tests nur auf explizite Nachfrage erstellen**
 - Erstelle KEINE Unit-Tests, Integrationstests oder andere Tests, es sei denn, der Benutzer fordert dies explizit an
 - Wenn Tests erstellt werden sollen, verwende:
   - xUnit als Test-Framework
@@ -16,14 +16,14 @@
   - Moq für Mocking (wo vorhanden)
 
 ### Dokumentation
-?? **Dokumentationen nur auf explizite Nachfrage bearbeiten oder erstellen**
+? **Dokumentationen nur auf explizite Nachfrage bearbeiten oder erstellen**
 - Erstelle KEINE README-Dateien oder Markdown-Dokumentationen, es sei denn, der Benutzer fordert dies explizit an
 - Bearbeite KEINE bestehende Dokumentation, es sei denn, der Benutzer fordert dies explizit an
 - **Auf keinen Fall automatisch eine README oder .md-Datei erstellen, nur weil eine neue Klasse hinzugefügt wurde**
 - XML-Dokumentationskommentare im Code sind davon nicht betroffen und sollten normal hinzugefügt werden
 
 ### Dokumentations-Struktur
-?? **Wo Dokumentationen abgelegt werden dürfen:**
+? **Wo Dokumentationen abgelegt werden dürfen:**
 - ? **Solution-README**: Im Root-Verzeichnis der Solution
 - ? **Projekt-README**: Im Root-Verzeichnis jedes Projekts
 - ? **Docs-Ordner**: Pro Projekt ein `Docs/` Ordner (muss bei Bedarf erstellt werden)
@@ -133,7 +133,7 @@ Wpf ? Engine, Content, Progress
 
 #### Dependency Injection und Service Modules
 
-**?? KRITISCHE REGEL: Keine Verschachtelung von ServiceModules!**
+**? KRITISCHE REGEL: Keine Verschachtelung von ServiceModules!**
 
 Ein `IServiceModule` darf **NIEMALS** innerhalb eines anderen `IServiceModule` instanziiert und ausgeführt werden!
 
@@ -354,24 +354,69 @@ public class MyEntityService
 
 #### DataStore-Pattern
 
-##### DataStoreProvider verwenden
+##### ? FALSCH - IDataStore direkt injizieren
+
 ```csharp
-public class MyService
+// ? FUNKTIONIERT NICHT - IDataStore kann nicht aufgelöst werden!
+public class MyViewModel
 {
-    private readonly PersistentDataStore<MyEntity> _store;
+    private readonly IDataStore<MyEntity> _dataStore;
     
-    public MyService(IDataStoreProvider provider, IRepositoryFactory factory)
+    public MyViewModel(IDataStore<MyEntity> dataStore)
     {
-        _store = provider.GetPersistent<MyEntity>(
+        _dataStore = dataStore;
+    }
+}
+```
+
+**Problem:** `IDataStore<T>` wird nicht automatisch vom DI-Container registriert und kann daher nicht aufgelöst werden!
+
+##### ? KORREKT - IDataStoreProvider verwenden
+
+**Option 1: GetDataStore (wenn bereits beim Startup initialisiert)**
+
+```csharp
+// ? Wenn der DataStore bereits beim Startup initialisiert wurde (z.B. via IDataStoreInitializer)
+public class MyViewModel
+{
+    private readonly IDataStore<MyEntity> _dataStore;
+    
+    public MyViewModel(IDataStoreProvider provider)
+    {
+        _dataStore = provider.GetDataStore<MyEntity>();
+    }
+    
+    public ReadOnlyObservableCollection<MyEntity> Items => _dataStore.Items;
+}
+```
+
+**Option 2: GetPersistent (für on-demand Erstellung)**
+
+```csharp
+// ? Wenn der DataStore on-demand erstellt werden soll
+public class MyViewModel
+{
+    private readonly PersistentDataStore<MyEntity> _dataStore;
+    
+    public MyViewModel(IDataStoreProvider provider, IRepositoryFactory factory)
+    {
+        _dataStore = provider.GetPersistent<MyEntity>(
             factory,
             isSingleton: true,
             trackPropertyChanges: true,
             autoLoad: true);
     }
     
-    public ReadOnlyObservableCollection<MyEntity> Items => _store.Items;
+    public ReadOnlyObservableCollection<MyEntity> Items => _dataStore.Items;
 }
 ```
+
+**Wichtig:**
+- ? **Immer `IDataStoreProvider` injizieren**, niemals `IDataStore<T>`
+- ? **`GetDataStore<T>()` verwenden**, wenn DataStores bereits beim Startup initialisiert wurden (empfohlen)
+- ? **`GetPersistent<T>()` oder `GetInMemory<T>()`** nur für on-demand DataStore-Erstellung
+- ? **Singleton-DataStores bevorzugen** (`isSingleton: true`) für app-weite Daten
+- ? **AutoLoad aktivieren** (`autoLoad: true`) wenn Daten beim Start geladen werden sollen
 
 ##### DataStoreWrapper Pattern
 ```csharp
@@ -437,6 +482,7 @@ public string RequiredValue { get; set; } = string.Empty;
 - ? Keine Dokumentation ohne explizite Aufforderung erstellen/bearbeiten
 - ? **Niemals automatisch README/Markdown-Dateien in Quellcode-Ordnern erstellen**
 - ? **Niemals ServiceModules verschachteln (siehe kritische Regel oben)**
+- ? **Niemals IDataStore<T> direkt injizieren - immer IDataStoreProvider verwenden!**
 - ? Keine Breaking Changes an bestehenden APIs
 - ? Keine `#pragma warning disable` ohne guten Grund
 - ? Keine leeren catch-Blöcke ohne Kommentar
@@ -464,3 +510,4 @@ public class MyListViewModel : CollectionViewModel<MyModel, MyViewModel>
 - Frage nach, wenn unklar ist, ob Tests/Dokumentation gewünscht sind
 - **Im Zweifelsfall: KEINE Dokumentations-Dateien erstellen**
 - **Im Zweifelsfall bei DI: AddModulesFromAssemblies verwenden**
+- **Im Zweifelsfall bei DataStore: IDataStoreProvider verwenden**

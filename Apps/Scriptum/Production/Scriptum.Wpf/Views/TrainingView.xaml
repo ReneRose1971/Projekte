@@ -5,33 +5,83 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:keyboard="clr-namespace:Scriptum.Wpf.Keyboard.Controls;assembly=Scriptum.Wpf.Keyboard"
              mc:Ignorable="d" 
-             d:DesignHeight="600" d:DesignWidth="1000"
+             d:DesignHeight="600" d:DesignWidth="1200"
              Focusable="True"
              Loaded="TrainingView_Loaded">
     <Grid Margin="10">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Training" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+        <Grid Grid.Column="0" Margin="0,0,10,0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-        <Border Grid.Row="1" BorderBrush="#D1D5DB" BorderThickness="1" 
-                CornerRadius="4" Padding="8" Margin="0,0,0,10">
-            <StackPanel>
-                <TextBlock Text="{Binding StatusText}" FontSize="14" FontWeight="Bold" Margin="0,0,0,5"/>
-                <TextBlock Text="{Binding DisplayTarget}" FontSize="12" Foreground="Gray"/>
+            <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBlock Text="Training" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+                <Button Content="?" Width="30" Height="30" Margin="10,0,0,0" 
+                        FontWeight="Bold" FontSize="14"
+                        Click="ToggleGuide_Click"
+                        ToolTip="Hilfe ein-/ausblenden"/>
             </StackPanel>
-        </Border>
 
-        <Border Grid.Row="2" BorderBrush="#D1D5DB" BorderThickness="1" 
-                CornerRadius="4" Padding="10" Background="White">
-            <keyboard:VisualKeyboard DataContext="{Binding Keyboard}" />
-        </Border>
+            <Border Grid.Row="1" BorderBrush="#D1D5DB" BorderThickness="1" 
+                    CornerRadius="4" Padding="8" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBlock Text="{Binding StatusText}" FontSize="14" FontWeight="Bold" Margin="0,0,0,5"/>
+                    
+                    <TextBlock Text="Zieltext:" FontSize="11" Foreground="#6B7280" Margin="0,5,0,2"/>
+                    <TextBlock Text="{Binding DisplayTarget}" FontSize="12" Foreground="Gray" TextWrapping="Wrap" Margin="0,0,0,5"/>
+                    
+                    <TextBlock Text="Deine Eingabe:" FontSize="11" Foreground="#6B7280" Margin="0,5,0,2"/>
+                    <TextBlock Text="{Binding DisplayInput}" FontSize="12" Foreground="#059669" TextWrapping="Wrap" FontWeight="Medium"/>
+                </StackPanel>
+            </Border>
 
-        <Button Grid.Row="3" Content="Back" Width="100" HorizontalAlignment="Left" 
-                Margin="0,10,0,0" Click="BackButton_Click"/>
+            <Border Grid.Row="2" BorderBrush="#D1D5DB" BorderThickness="1" 
+                    CornerRadius="4" Padding="10" Background="White">
+                <keyboard:VisualKeyboard DataContext="{Binding Keyboard}" />
+            </Border>
+
+            <Button Grid.Row="3" Content="Zurueck" Width="100" HorizontalAlignment="Left" 
+                    Margin="0,10,0,0" Click="BackButton_Click"/>
+        </Grid>
+
+        <Border Grid.Column="1" 
+                Width="350"
+                BorderBrush="#D1D5DB" 
+                BorderThickness="1" 
+                CornerRadius="4" 
+                Background="White"
+                Visibility="{Binding IsGuideVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" Background="#F3F4F6" Padding="10" BorderBrush="#D1D5DB" BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="Hilfe" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Button Content="X" Width="30" Height="30" HorizontalAlignment="Right"
+                                FontWeight="Bold" FontSize="18"
+                                Click="ToggleGuide_Click"
+                                ToolTip="Schliessen"/>
+                    </StackPanel>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="10">
+                    <TextBlock Text="{Binding GuideText}" 
+                               TextWrapping="Wrap" 
+                               FontSize="12"
+                               LineHeight="20"/>
+                </ScrollViewer>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

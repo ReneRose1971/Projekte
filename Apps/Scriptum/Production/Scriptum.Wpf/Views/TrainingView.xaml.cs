@@ -38,4 +38,9 @@ public partial class TrainingView : UserControl
     {
         ViewModel?.NavigateBack();
     }
+
+    private void ToggleGuide_Click(object sender, RoutedEventArgs e)
+    {
+        ViewModel?.ToggleGuide();
+    }
 }

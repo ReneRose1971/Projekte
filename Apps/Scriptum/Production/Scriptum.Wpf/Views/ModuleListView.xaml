@@ -15,20 +15,62 @@
         <TextBlock Grid.Row="0" Text="Module" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
 
         <ListBox Grid.Row="1" ItemsSource="{Binding Modules}" 
-                 MouseDoubleClick="ModuleList_MouseDoubleClick">
+                 MouseDoubleClick="ModuleList_MouseDoubleClick"
+                 Background="Transparent"
+                 BorderThickness="0">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <Border Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        Padding="{TemplateBinding Padding}">
+                                    <ContentPresenter/>
+                                </Border>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <StackPanel Margin="5">
-                        <TextBlock Text="{Binding Title}" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding Description}" Foreground="Gray"/>
-                        <TextBlock Text="{Binding LessonCount, StringFormat='Lektionen: {0}'}" 
-                                   FontSize="11" Foreground="DarkGray" Margin="0,2,0,0"/>
-                    </StackPanel>
+                    <Border x:Name="CardBorder"
+                            Background="White" 
+                            BorderBrush="#CCCCCC" 
+                            BorderThickness="1" 
+                            CornerRadius="4" 
+                            Margin="5"
+                            Padding="10"
+                            Cursor="Hand">
+                        <Border.Effect>
+                            <DropShadowEffect Color="Black" 
+                                              Opacity="0.15" 
+                                              BlurRadius="8" 
+                                              ShadowDepth="2" 
+                                              Direction="315"/>
+                        </Border.Effect>
+                        <StackPanel>
+                            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14"/>
+                            <TextBlock Text="{Binding Description}" Foreground="Gray" Margin="0,4,0,0"/>
+                            <TextBlock Text="{Binding LessonCount, StringFormat='Lektionen: {0}'}" 
+                                       FontSize="11" Foreground="DarkGray" Margin="0,6,0,0"/>
+                        </StackPanel>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="CardBorder" Property="Background" Value="#F5F5F5"/>
+                            <Setter TargetName="CardBorder" Property="BorderBrush" Value="#888888"/>
+                            <Setter TargetName="CardBorder" Property="BorderThickness" Value="2"/>
+                        </Trigger>
+                    </DataTemplate.Triggers>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Button Grid.Row="2" Content="Back" Width="100" HorizontalAlignment="Left" 
+        <Button Grid.Row="2" Content="Zurueck" Width="100" HorizontalAlignment="Left" 
                 Margin="0,10,0,0" Click="BackButton_Click"/>
     </Grid>
 </UserControl>
