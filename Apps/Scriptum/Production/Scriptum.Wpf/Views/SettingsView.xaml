@@ -18,7 +18,7 @@
             <TextBlock Text="{Binding SettingsText}" TextWrapping="Wrap" FontSize="14"/>
         </ScrollViewer>
 
-        <Button Grid.Row="2" Content="Back" Width="100" HorizontalAlignment="Left" 
+        <Button Grid.Row="2" Content="Zur&#252;ck" Width="100" HorizontalAlignment="Left" 
                 Margin="0,10,0,0" Click="BackButton_Click"/>
     </Grid>
 </UserControl>

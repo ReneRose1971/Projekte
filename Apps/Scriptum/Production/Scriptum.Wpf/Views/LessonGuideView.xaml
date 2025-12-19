@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:mdxam="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid Margin="20">
@@ -16,10 +17,10 @@
                    FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
 
         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <TextBlock Text="{Binding GuideText}" TextWrapping="Wrap" FontSize="14"/>
+            <mdxam:MarkdownViewer Markdown="{Binding GuideText}" FontSize="14"/>
         </ScrollViewer>
 
-        <Button Grid.Row="2" Content="Back" Width="100" HorizontalAlignment="Left" 
+        <Button Grid.Row="2" Content="Zur&#252;ck" Width="100" HorizontalAlignment="Left" 
                 Margin="0,10,0,0" Click="BackButton_Click"/>
     </Grid>
 </UserControl>

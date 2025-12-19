@@ -4,6 +4,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:keyboard="clr-namespace:Scriptum.Wpf.Keyboard.Controls;assembly=Scriptum.Wpf.Keyboard"
+             xmlns:mdxam="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf"
              mc:Ignorable="d" 
              d:DesignHeight="600" d:DesignWidth="1200"
              Focusable="True"
@@ -76,10 +77,8 @@
                 </Border>
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="10">
-                    <TextBlock Text="{Binding GuideText}" 
-                               TextWrapping="Wrap" 
-                               FontSize="12"
-                               LineHeight="20"/>
+                    <mdxam:MarkdownViewer Markdown="{Binding GuideText}" 
+                                          FontSize="12"/>
                 </ScrollViewer>
             </Grid>
         </Border>

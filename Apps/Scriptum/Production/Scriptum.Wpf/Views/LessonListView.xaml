@@ -68,7 +68,7 @@
                             </StackPanel>
                             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                 <Button Content="Details" Width="70" Margin="5,0" Click="DetailsButton_Click" Tag="{Binding}"/>
-                                <Button Content="Start" Width="70" Margin="5,0" Click="StartButton_Click" Tag="{Binding}"/>
+                                <Button Content="Starten" Width="70" Margin="5,0" Click="StartButton_Click" Tag="{Binding}"/>
                             </StackPanel>
                         </Grid>
                     </Border>

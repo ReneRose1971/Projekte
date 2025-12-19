@@ -12,13 +12,13 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Training Summary" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+        <TextBlock Grid.Row="0" Text="Trainings&#252;bersicht" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
 
         <StackPanel Grid.Row="1" VerticalAlignment="Center" HorizontalAlignment="Center">
             <TextBlock Text="{Binding SummaryText}" FontSize="14" TextWrapping="Wrap" 
                        HorizontalAlignment="Center" Margin="0,0,0,20"/>
-            <Button Content="Module Overview" Width="200" Height="40" Margin="0,5" Click="ModulesButton_Click"/>
-            <Button Content="Home" Width="200" Height="40" Margin="0,5" Click="HomeButton_Click"/>
+            <Button Content="Modul&#252;bersicht" Width="200" Height="40" Margin="0,5" Click="ModulesButton_Click"/>
+            <Button Content="Startseite" Width="200" Height="40" Margin="0,5" Click="HomeButton_Click"/>
         </StackPanel>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">

@@ -12,21 +12,21 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Session History" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
+        <TextBlock Grid.Row="0" Text="Sitzungsverlauf" FontSize="20" FontWeight="Bold" Margin="0,0,0,10"/>
 
         <ListBox Grid.Row="1" ItemsSource="{Binding Sessions}" MouseDoubleClick="SessionList_MouseDoubleClick">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <StackPanel Margin="5">
-                        <TextBlock Text="{Binding LessonTitel}" FontWeight="Bold"/>
-                        <TextBlock Text="{Binding Datum}" FontSize="12" Foreground="Gray"/>
-                        <TextBlock Text="{Binding Fehler, StringFormat='Errors: {0}'}" FontSize="12" Foreground="DarkGray"/>
+                        <TextBlock Text="{Binding LessonTitle}" FontWeight="Bold"/>
+                        <TextBlock Text="{Binding StartedAt, StringFormat='dd.MM.yyyy HH:mm'}" FontSize="12" Foreground="Gray"/>
+                        <TextBlock Text="{Binding TotalErrors, StringFormat='Fehler: {0}'}" FontSize="12" Foreground="DarkGray"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
 
-        <Button Grid.Row="2" Content="Back" Width="100" HorizontalAlignment="Left" 
+        <Button Grid.Row="2" Content="Zur&#252;ck" Width="100" HorizontalAlignment="Left" 
                 Margin="0,10,0,0" Click="BackButton_Click"/>
     </Grid>
 </UserControl>
