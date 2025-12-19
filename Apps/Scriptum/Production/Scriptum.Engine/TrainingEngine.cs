@@ -67,7 +67,7 @@ public sealed class TrainingEngine : ITrainingEngine
     {
         if (currentState.IstFehlerAktiv)
         {
-            return (IncrementGesamtEingaben(currentState), null);
+            return (TrainingState.WithIncrementedInput(currentState), null);
         }
         
         var expectedSymbol = currentState.Sequence.Symbols[currentState.CurrentTargetIndex];
@@ -79,45 +79,26 @@ public sealed class TrainingEngine : ITrainingEngine
             var newIndex = currentState.CurrentTargetIndex + 1;
             var isCompleted = newIndex >= currentState.Sequence.Length;
             
-            var newState = new TrainingState(
-                sequence: currentState.Sequence,
-                currentTargetIndex: newIndex,
-                startTime: currentState.StartTime,
-                endTime: isCompleted ? inputEvent.Timestamp : null,
-                istFehlerAktiv: false,
-                fehlerPosition: currentState.FehlerPosition,
-                gesamtEingaben: currentState.GesamtEingaben + 1,
-                fehler: currentState.Fehler,
-                korrekturen: currentState.Korrekturen,
-                ruecktasten: currentState.Ruecktasten);
+            var newState = TrainingState.WithCorrectInput(
+                currentState,
+                newIndex,
+                isCompleted ? inputEvent.Timestamp : null);
             
-            var evaluation = new EvaluationEvent(
-                targetIndex: currentState.CurrentTargetIndex,
-                expectedGraphem: expectedSymbol.Graphem,
-                actualGraphem: actualGraphem,
-                outcome: EvaluationOutcome.Richtig);
+            var evaluation = EvaluationEvent.CreateCorrect(
+                currentState.CurrentTargetIndex,
+                expectedSymbol.Graphem,
+                actualGraphem);
             
             return (newState, evaluation);
         }
         else
         {
-            var newState = new TrainingState(
-                sequence: currentState.Sequence,
-                currentTargetIndex: currentState.CurrentTargetIndex,
-                startTime: currentState.StartTime,
-                endTime: null,
-                istFehlerAktiv: true,
-                fehlerPosition: currentState.CurrentTargetIndex,
-                gesamtEingaben: currentState.GesamtEingaben + 1,
-                fehler: currentState.Fehler + 1,
-                korrekturen: currentState.Korrekturen,
-                ruecktasten: currentState.Ruecktasten);
+            var newState = TrainingState.WithIncorrectInput(currentState);
             
-            var evaluation = new EvaluationEvent(
-                targetIndex: currentState.CurrentTargetIndex,
-                expectedGraphem: expectedSymbol.Graphem,
-                actualGraphem: actualGraphem,
-                outcome: EvaluationOutcome.Falsch);
+            var evaluation = EvaluationEvent.CreateIncorrect(
+                currentState.CurrentTargetIndex,
+                expectedSymbol.Graphem,
+                actualGraphem);
             
             return (newState, evaluation);
         }
@@ -131,39 +112,17 @@ public sealed class TrainingEngine : ITrainingEngine
         {
             var expectedSymbol = currentState.Sequence.Symbols[currentState.FehlerPosition];
             
-            var newState = new TrainingState(
-                sequence: currentState.Sequence,
-                currentTargetIndex: currentState.CurrentTargetIndex,
-                startTime: currentState.StartTime,
-                endTime: null,
-                istFehlerAktiv: false,
-                fehlerPosition: currentState.FehlerPosition,
-                gesamtEingaben: currentState.GesamtEingaben + 1,
-                fehler: currentState.Fehler,
-                korrekturen: currentState.Korrekturen + 1,
-                ruecktasten: currentState.Ruecktasten + 1);
+            var newState = TrainingState.WithCorrectionInput(currentState);
             
-            var evaluation = new EvaluationEvent(
-                targetIndex: currentState.FehlerPosition,
-                expectedGraphem: expectedSymbol.Graphem,
-                actualGraphem: string.Empty,
-                outcome: EvaluationOutcome.Korrigiert);
+            var evaluation = EvaluationEvent.CreateCorrected(
+                currentState.FehlerPosition,
+                expectedSymbol.Graphem);
             
             return (newState, evaluation);
         }
         else
         {
-            var newState = new TrainingState(
-                sequence: currentState.Sequence,
-                currentTargetIndex: currentState.CurrentTargetIndex,
-                startTime: currentState.StartTime,
-                endTime: null,
-                istFehlerAktiv: false,
-                fehlerPosition: currentState.FehlerPosition,
-                gesamtEingaben: currentState.GesamtEingaben + 1,
-                fehler: currentState.Fehler,
-                korrekturen: currentState.Korrekturen,
-                ruecktasten: currentState.Ruecktasten + 1);
+            var newState = TrainingState.WithBackspaceInput(currentState);
             
             return (newState, null);
         }
@@ -171,21 +130,6 @@ public sealed class TrainingEngine : ITrainingEngine
     
     private static (TrainingState, EvaluationEvent?) ProcessIgnoredInput(TrainingState currentState)
     {
-        return (IncrementGesamtEingaben(currentState), null);
-    }
-    
-    private static TrainingState IncrementGesamtEingaben(TrainingState currentState)
-    {
-        return new TrainingState(
-            sequence: currentState.Sequence,
-            currentTargetIndex: currentState.CurrentTargetIndex,
-            startTime: currentState.StartTime,
-            endTime: currentState.EndTime,
-            istFehlerAktiv: currentState.IstFehlerAktiv,
-            fehlerPosition: currentState.FehlerPosition,
-            gesamtEingaben: currentState.GesamtEingaben + 1,
-            fehler: currentState.Fehler,
-            korrekturen: currentState.Korrekturen,
-            ruecktasten: currentState.Ruecktasten);
+        return (TrainingState.WithIncrementedInput(currentState), null);
     }
 }

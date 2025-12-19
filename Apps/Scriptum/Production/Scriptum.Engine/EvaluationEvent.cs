@@ -56,4 +56,39 @@ public sealed class EvaluationEvent
         ActualGraphem = actualGraphem;
         Outcome = outcome;
     }
+    
+    /// <summary>
+    /// Erstellt ein Bewertungsereignis für eine korrekte Eingabe.
+    /// </summary>
+    /// <param name="targetIndex">Die Zielposition.</param>
+    /// <param name="expectedGraphem">Das erwartete Graphem.</param>
+    /// <param name="actualGraphem">Das tatsächlich eingegebene Graphem.</param>
+    /// <returns>Ein neues EvaluationEvent mit Outcome.Richtig.</returns>
+    public static EvaluationEvent CreateCorrect(int targetIndex, string expectedGraphem, string actualGraphem)
+    {
+        return new EvaluationEvent(targetIndex, expectedGraphem, actualGraphem, EvaluationOutcome.Richtig);
+    }
+    
+    /// <summary>
+    /// Erstellt ein Bewertungsereignis für eine fehlerhafte Eingabe.
+    /// </summary>
+    /// <param name="targetIndex">Die Zielposition.</param>
+    /// <param name="expectedGraphem">Das erwartete Graphem.</param>
+    /// <param name="actualGraphem">Das tatsächlich eingegebene Graphem.</param>
+    /// <returns>Ein neues EvaluationEvent mit Outcome.Falsch.</returns>
+    public static EvaluationEvent CreateIncorrect(int targetIndex, string expectedGraphem, string actualGraphem)
+    {
+        return new EvaluationEvent(targetIndex, expectedGraphem, actualGraphem, EvaluationOutcome.Falsch);
+    }
+    
+    /// <summary>
+    /// Erstellt ein Bewertungsereignis für eine Korrektur (Rücktaste bei aktivem Fehler).
+    /// </summary>
+    /// <param name="targetIndex">Die Zielposition.</param>
+    /// <param name="expectedGraphem">Das erwartete Graphem.</param>
+    /// <returns>Ein neues EvaluationEvent mit Outcome.Korrigiert und leerem ActualGraphem.</returns>
+    public static EvaluationEvent CreateCorrected(int targetIndex, string expectedGraphem)
+    {
+        return new EvaluationEvent(targetIndex, expectedGraphem, string.Empty, EvaluationOutcome.Korrigiert);
+    }
 }

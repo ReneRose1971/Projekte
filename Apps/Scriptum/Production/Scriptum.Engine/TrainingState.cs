@@ -129,4 +129,106 @@ public sealed class TrainingState
         Korrekturen = korrekturen;
         Ruecktasten = ruecktasten;
     }
+    
+    /// <summary>
+    /// Erstellt einen neuen Trainingszustand mit erhöhter GesamtEingaben-Zählung.
+    /// </summary>
+    /// <param name="current">Der aktuelle Zustand.</param>
+    /// <returns>Ein neuer Zustand mit inkrementierter GesamtEingaben.</returns>
+    public static TrainingState WithIncrementedInput(TrainingState current)
+    {
+        return new TrainingState(
+            sequence: current.Sequence,
+            currentTargetIndex: current.CurrentTargetIndex,
+            startTime: current.StartTime,
+            endTime: current.EndTime,
+            istFehlerAktiv: current.IstFehlerAktiv,
+            fehlerPosition: current.FehlerPosition,
+            gesamtEingaben: current.GesamtEingaben + 1,
+            fehler: current.Fehler,
+            korrekturen: current.Korrekturen,
+            ruecktasten: current.Ruecktasten);
+    }
+    
+    /// <summary>
+    /// Erstellt einen neuen Trainingszustand für eine korrekte Eingabe.
+    /// </summary>
+    /// <param name="current">Der aktuelle Zustand.</param>
+    /// <param name="newTargetIndex">Der neue Zielindex nach korrekter Eingabe.</param>
+    /// <param name="endTime">Der Endzeitpunkt (wenn die Übung abgeschlossen ist).</param>
+    /// <returns>Ein neuer Zustand mit erhöhtem Index und aktualisierter GesamtEingaben.</returns>
+    public static TrainingState WithCorrectInput(TrainingState current, int newTargetIndex, DateTime? endTime)
+    {
+        return new TrainingState(
+            sequence: current.Sequence,
+            currentTargetIndex: newTargetIndex,
+            startTime: current.StartTime,
+            endTime: endTime,
+            istFehlerAktiv: false,
+            fehlerPosition: current.FehlerPosition,
+            gesamtEingaben: current.GesamtEingaben + 1,
+            fehler: current.Fehler,
+            korrekturen: current.Korrekturen,
+            ruecktasten: current.Ruecktasten);
+    }
+    
+    /// <summary>
+    /// Erstellt einen neuen Trainingszustand für eine fehlerhafte Eingabe.
+    /// </summary>
+    /// <param name="current">Der aktuelle Zustand.</param>
+    /// <returns>Ein neuer Zustand mit aktivem Fehler und erhöhten Zählern.</returns>
+    public static TrainingState WithIncorrectInput(TrainingState current)
+    {
+        return new TrainingState(
+            sequence: current.Sequence,
+            currentTargetIndex: current.CurrentTargetIndex,
+            startTime: current.StartTime,
+            endTime: null,
+            istFehlerAktiv: true,
+            fehlerPosition: current.CurrentTargetIndex,
+            gesamtEingaben: current.GesamtEingaben + 1,
+            fehler: current.Fehler + 1,
+            korrekturen: current.Korrekturen,
+            ruecktasten: current.Ruecktasten);
+    }
+    
+    /// <summary>
+    /// Erstellt einen neuen Trainingszustand für eine Korrektur-Eingabe (Rücktaste bei aktivem Fehler).
+    /// </summary>
+    /// <param name="current">Der aktuelle Zustand.</param>
+    /// <returns>Ein neuer Zustand mit deaktiviertem Fehler und erhöhten Zählern.</returns>
+    public static TrainingState WithCorrectionInput(TrainingState current)
+    {
+        return new TrainingState(
+            sequence: current.Sequence,
+            currentTargetIndex: current.CurrentTargetIndex,
+            startTime: current.StartTime,
+            endTime: null,
+            istFehlerAktiv: false,
+            fehlerPosition: current.FehlerPosition,
+            gesamtEingaben: current.GesamtEingaben + 1,
+            fehler: current.Fehler,
+            korrekturen: current.Korrekturen + 1,
+            ruecktasten: current.Ruecktasten + 1);
+    }
+    
+    /// <summary>
+    /// Erstellt einen neuen Trainingszustand für eine Rücktaste-Eingabe ohne aktiven Fehler.
+    /// </summary>
+    /// <param name="current">Der aktuelle Zustand.</param>
+    /// <returns>Ein neuer Zustand mit erhöhten Rücktasten-Zählern.</returns>
+    public static TrainingState WithBackspaceInput(TrainingState current)
+    {
+        return new TrainingState(
+            sequence: current.Sequence,
+            currentTargetIndex: current.CurrentTargetIndex,
+            startTime: current.StartTime,
+            endTime: null,
+            istFehlerAktiv: false,
+            fehlerPosition: current.FehlerPosition,
+            gesamtEingaben: current.GesamtEingaben + 1,
+            fehler: current.Fehler,
+            korrekturen: current.Korrekturen,
+            ruecktasten: current.Ruecktasten + 1);
+    }
 }
